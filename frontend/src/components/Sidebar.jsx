@@ -1,4 +1,5 @@
 import SidebarButton from "./SidebarButton"
+import { HomeIcon, DocumentCheckIcon, BuildingOffice2Icon, UserGroupIcon, CurrencyDollarIcon, ArrowTrendingUpIcon } from "@heroicons/react/24/solid"
 
 const Sidebar = () => {
   return (
@@ -13,13 +14,31 @@ const Sidebar = () => {
         </p>
       </div>
 
-      <div className="flex flex-col gap 2 p-2">
-        <SidebarButton variant="selected">Início</SidebarButton>
-        <SidebarButton variant="unselected">Tarefas</SidebarButton>
-        <SidebarButton variant="unselected">Empresas</SidebarButton>
-        <SidebarButton variant="unselected">Pessoas</SidebarButton>
-        <SidebarButton variant="unselected">Negócios</SidebarButton>
-        <SidebarButton variant="unselected">Relatórios</SidebarButton>
+      <div className="flex flex-col gap-2 p-2">
+        <SidebarButton variant="unselected">
+          <HomeIcon className="w-6 h-6 text-yellow-600" />
+          Início
+        </SidebarButton>
+        <SidebarButton variant="unselected">
+          <DocumentCheckIcon className="w-6 h-6 text-yellow-600" />
+          Tarefas
+        </SidebarButton>
+        <SidebarButton variant="selected">
+          <BuildingOffice2Icon className="w-6 h-6 text-yellow-600" />
+          Empresas
+        </SidebarButton>
+        <SidebarButton variant="unselected">
+          <UserGroupIcon className="w-6 h-6 text-yellow-600" />
+          Pessoas
+        </SidebarButton>
+        <SidebarButton variant="unselected">
+          <CurrencyDollarIcon className="w-6 h-6 text-yellow-600" />
+          Negócios
+        </SidebarButton>
+        <SidebarButton variant="unselected">
+          <ArrowTrendingUpIcon className="w-6 h-6 text-yellow-600" />
+          Relatórios
+        </SidebarButton>
       </div>
     </div>
   )

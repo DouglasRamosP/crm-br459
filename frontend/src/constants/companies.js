@@ -1,4 +1,4 @@
-export const companies = [
+const companiesMock = [
   {
     id: 1,
     nome: "Alfa Solutions LTDA",
@@ -104,3 +104,5 @@ export const companies = [
     telefone: "(51) 99321-9088",
   },
 ]
+
+export default companiesMock

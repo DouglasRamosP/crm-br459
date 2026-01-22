@@ -1,8 +1,37 @@
 import Button from "./Button"
 import { PlusIcon } from "@heroicons/react/24/solid"
 import CompaniesTable from "./CompaniesTable"
+import { useState } from "react"
+import companiesMock from "../constants/companies"
+import { toast } from "sonner"
 
 const Companies = () => {
+  const [companies, setCompanies] = useState(companiesMock)
+
+  const handleDelete = (id) => {
+    toast.warning("Confirmar exclusão?", {
+      action: {
+        label: "Excluir",
+        onClick: () => {
+          setCompanies((prev) => prev.filter((c) => c.id !== id))
+          toast.success("Empresa excluída com sucesso")
+        },
+      },
+    })
+  }
+
+  const handleView = (company) => {
+    toast(
+      `
+      Detalhes: ${company.nome} 
+      Categoria: ${company.categoria} 
+      Responsável: ${company.responsavel} 
+      Email: ${company.email} 
+      Telefone: ${company.telefone}
+      `
+    )
+  }
+
   return (
     <div className="w-full px-8 py-16">
       <div className="flex justify-between pb-6">
@@ -22,7 +51,11 @@ const Companies = () => {
       </div>
 
       <div>
-        <CompaniesTable />
+        <CompaniesTable
+          companies={companies}
+          onDelete={handleDelete}
+          onView={handleView}
+        />
       </div>
     </div>
   )

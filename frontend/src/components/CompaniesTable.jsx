@@ -1,4 +1,8 @@
-import { ArrowTopRightOnSquareIcon, TrashIcon } from "@heroicons/react/24/solid"
+import {
+  ArrowTopRightOnSquareIcon,
+  BuildingOfficeIcon,
+  TrashIcon,
+} from "@heroicons/react/24/solid"
 
 const CompaniesTable = ({ companies, onDelete, onView }) => {
   return (
@@ -22,24 +26,31 @@ const CompaniesTable = ({ companies, onDelete, onView }) => {
             >
               <td className="px-4 py-3 font-medium text-gray-800">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="min-w-0 truncate">{company.nome}</span>
+                  {/* Ícone + Nome */}
+                  <div className="flex min-w-0 items-center gap-1">
+                    <BuildingOfficeIcon className="h-4 w-4 shrink-0 text-yellow-600 opacity-60" />
 
+                    <span className="truncate">{company.nome}</span>
+                  </div>
+
+                  {/* Ações */}
                   <div className="flex shrink-0 items-center gap-2">
                     <button
                       type="button"
                       className="shrink-0"
                       title="Ver detalhes"
+                      onClick={() => onView(company)}
                     >
-                      <ArrowTopRightOnSquareIcon
-                        className="h-5 w-5 shrink-0 text-yellow-600 transition hover:bg-yellow-100 hover:text-yellow-700"
-                        onClick={() => onView(company)}
-                      />
+                      <ArrowTopRightOnSquareIcon className="h-5 w-5 text-yellow-600 transition hover:bg-yellow-100 hover:text-yellow-700" />
                     </button>
-                    <button type="button" className="shrink-0" title="Excluir">
-                      <TrashIcon
-                        className="h-5 w-5 shrink-0 text-yellow-600"
-                        onClick={() => onDelete(company.id)}
-                      />
+
+                    <button
+                      type="button"
+                      className="shrink-0"
+                      title="Excluir"
+                      onClick={() => onDelete(company.id)}
+                    >
+                      <TrashIcon className="h-5 w-5 text-yellow-600" />
                     </button>
                   </div>
                 </div>

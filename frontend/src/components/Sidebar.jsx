@@ -1,5 +1,13 @@
+import {
+  ArrowTrendingUpIcon,
+  BuildingOffice2Icon,
+  CurrencyDollarIcon,
+  DocumentCheckIcon,
+  HomeIcon,
+  UserGroupIcon,
+} from "@heroicons/react/24/solid"
+
 import SidebarButton from "./SidebarButton"
-import { HomeIcon, DocumentCheckIcon, BuildingOffice2Icon, UserGroupIcon, CurrencyDollarIcon, ArrowTrendingUpIcon } from "@heroicons/react/24/solid"
 
 const Sidebar = () => {
   return (
@@ -8,7 +16,7 @@ const Sidebar = () => {
         <h1 className="text-xl font-semibold text-yellow-600">BR 459</h1>
         <p>
           Sistema{" "}
-          <span className="text-yellow-600 font-semibold">
+          <span className="font-semibold text-yellow-600">
             Gestão e Negócios
           </span>
         </p>
@@ -16,27 +24,27 @@ const Sidebar = () => {
 
       <div className="flex flex-col gap-2 p-2">
         <SidebarButton variant="unselected">
-          <HomeIcon className="w-6 h-6 text-yellow-600" />
+          <HomeIcon className="h-6 w-6 text-yellow-600" />
           Início
         </SidebarButton>
         <SidebarButton variant="unselected">
-          <DocumentCheckIcon className="w-6 h-6 text-yellow-600" />
+          <DocumentCheckIcon className="h-6 w-6 text-yellow-600" />
           Tarefas
         </SidebarButton>
         <SidebarButton variant="selected">
-          <BuildingOffice2Icon className="w-6 h-6 text-yellow-600" />
+          <BuildingOffice2Icon className="h-6 w-6 text-yellow-600" />
           Empresas
         </SidebarButton>
         <SidebarButton variant="unselected">
-          <UserGroupIcon className="w-6 h-6 text-yellow-600" />
+          <UserGroupIcon className="h-6 w-6 text-yellow-600" />
           Pessoas
         </SidebarButton>
         <SidebarButton variant="unselected">
-          <CurrencyDollarIcon className="w-6 h-6 text-yellow-600" />
+          <CurrencyDollarIcon className="h-6 w-6 text-yellow-600" />
           Negócios
         </SidebarButton>
         <SidebarButton variant="unselected">
-          <ArrowTrendingUpIcon className="w-6 h-6 text-yellow-600" />
+          <ArrowTrendingUpIcon className="h-6 w-6 text-yellow-600" />
           Relatórios
         </SidebarButton>
       </div>

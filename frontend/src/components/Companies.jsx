@@ -1,9 +1,10 @@
-import Button from "./Button"
 import { PlusIcon } from "@heroicons/react/24/solid"
-import CompaniesTable from "./CompaniesTable"
 import { useState } from "react"
-import companiesMock from "../constants/companies"
 import { toast } from "sonner"
+
+import companiesMock from "../constants/companies"
+import Button from "./Button"
+import CompaniesTable from "./CompaniesTable"
 
 const Companies = () => {
   const [companies, setCompanies] = useState(companiesMock)
@@ -13,7 +14,9 @@ const Companies = () => {
       action: {
         label: "Excluir",
         onClick: () => {
-          setCompanies((prevCompanies) => prevCompanies.filter((company) => company.id !== id))
+          setCompanies((prevCompanies) =>
+            prevCompanies.filter((company) => company.id !== id)
+          )
           toast.success("Empresa excluída com sucesso")
         },
       },
@@ -39,13 +42,13 @@ const Companies = () => {
           <span className="text-xs font-semibold text-yellow-600">
             Parceiros e clientes
           </span>
-          <h2 className="font-semibold text-xl">Empresas cadastradas</h2>
+          <h2 className="text-xl font-semibold">Empresas cadastradas</h2>
         </div>
 
         <div>
           <Button
             text="Adicionar empresa"
-            icon={<PlusIcon className="w-6 h-6 text-yellow-600" />}
+            icon={<PlusIcon className="h-6 w-6 text-yellow-600" />}
           />
         </div>
       </div>

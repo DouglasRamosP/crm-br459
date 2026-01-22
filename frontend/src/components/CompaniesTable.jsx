@@ -24,20 +24,20 @@ const CompaniesTable = ({ companies, onDelete, onView }) => {
                 <div className="flex items-center justify-between gap-3">
                   <span className="min-w-0 truncate">{company.nome}</span>
 
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex shrink-0 items-center gap-2">
                     <button
                       type="button"
                       className="shrink-0"
                       title="Ver detalhes"
                     >
                       <ArrowTopRightOnSquareIcon
-                        className="transition hover:bg-yellow-100 hover:text-yellow-700 h-5 w-5 text-yellow-600 shrink-0"
+                        className="h-5 w-5 shrink-0 text-yellow-600 transition hover:bg-yellow-100 hover:text-yellow-700"
                         onClick={() => onView(company)}
                       />
                     </button>
-                    <button type="button" className=" shrink-0" title="Excluir">
+                    <button type="button" className="shrink-0" title="Excluir">
                       <TrashIcon
-                        className="h-5 w-5 text-yellow-600 shrink-0"
+                        className="h-5 w-5 shrink-0 text-yellow-600"
                         onClick={() => onDelete(company.id)}
                       />
                     </button>

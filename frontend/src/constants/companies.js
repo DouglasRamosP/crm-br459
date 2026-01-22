@@ -63,7 +63,7 @@ const companiesMock = [
     email: "juliana@verticedist.com",
     telefone: "(48) 99210-9087",
   },
-   {
+  {
     id: 9,
     nome: "PrimeTech Automação",
     categoria: "em potencial",

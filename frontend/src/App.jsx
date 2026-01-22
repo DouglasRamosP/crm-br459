@@ -1,6 +1,7 @@
-import Sidebar from "./components/Sidebar.jsx"
-import Companies from "./components/Companies.jsx"
 import { Toaster } from "sonner"
+
+import Companies from "./components/Companies.jsx"
+import Sidebar from "./components/Sidebar.jsx"
 
 export default function App() {
   return (

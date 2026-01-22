@@ -13,7 +13,7 @@ const Companies = () => {
       action: {
         label: "Excluir",
         onClick: () => {
-          setCompanies((prev) => prev.filter((c) => c.id !== id))
+          setCompanies((prevCompanies) => prevCompanies.filter((company) => company.id !== id))
           toast.success("Empresa excluída com sucesso")
         },
       },

@@ -4,10 +4,13 @@ import { toast } from "sonner"
 
 import companiesMock from "../constants/companies"
 import Button from "./Button"
+import CompanieDialog from "./CompanieDialog"
 import CompaniesTable from "./CompaniesTable"
 
 const Companies = () => {
   const [companies, setCompanies] = useState(companiesMock)
+
+  const [DialogOpen, setDialogOpen] = useState(false)
 
   const handleDelete = (id) => {
     toast.warning("Confirmar exclusão?", {
@@ -47,6 +50,7 @@ const Companies = () => {
 
         <div>
           <Button
+            onClick={() => setDialogOpen(true)}
             text="Adicionar empresa"
             icon={<PlusIcon className="h-6 w-6 text-yellow-600" />}
           />
@@ -60,6 +64,7 @@ const Companies = () => {
           onView={handleView}
         />
       </div>
+      <CompanieDialog isOpen={DialogOpen}>Testando</CompanieDialog>
     </div>
   )
 }

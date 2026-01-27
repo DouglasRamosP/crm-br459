@@ -95,14 +95,6 @@ const companiesMock = [
     email: "julio@nortesultransp.com",
     telefone: "(62) 99654-3301",
   },
-  {
-    id: 13,
-    nome: "BlueWave Tecnologia",
-    categoria: "em potencial",
-    responsavel: "Aline Teixeira",
-    email: "aline@bluewavetech.com",
-    telefone: "(51) 99321-9088",
-  },
 ]
 
 export default companiesMock

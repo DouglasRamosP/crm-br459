@@ -3,14 +3,18 @@ import { useState } from "react"
 import { toast } from "sonner"
 
 import companiesMock from "../constants/companies"
+import CompanieDialog from "./AddCompanieDialog"
 import Button from "./Button"
-import CompanieDialog from "./CompanieDialog"
 import CompaniesTable from "./CompaniesTable"
 
 const Companies = () => {
   const [companies, setCompanies] = useState(companiesMock)
 
   const [DialogOpen, setDialogOpen] = useState(false)
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false)
+  }
 
   const handleDelete = (id) => {
     toast.warning("Confirmar exclusão?", {
@@ -64,7 +68,7 @@ const Companies = () => {
           onView={handleView}
         />
       </div>
-      <CompanieDialog isOpen={DialogOpen}>Testando</CompanieDialog>
+      <CompanieDialog isOpen={DialogOpen} onClose={handleCloseDialog} />
     </div>
   )
 }

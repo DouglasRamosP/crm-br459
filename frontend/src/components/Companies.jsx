@@ -1,6 +1,7 @@
 import { PlusIcon } from "@heroicons/react/24/solid"
 import { useState } from "react"
 import { toast } from "sonner"
+import { v4 } from "uuid"
 
 import companiesMock from "../constants/companies"
 import CompanieDialog from "./AddCompanieDialog"
@@ -42,6 +43,17 @@ const Companies = () => {
     )
   }
 
+  const handleSaveCompany = (company) => {
+    const newCompany = {
+      id: v4(),
+      ...company,
+    }
+
+    setCompanies((prevCompanies) => [...prevCompanies, newCompany])
+    toast.success("Empresa adicionada com sucesso!")
+    handleCloseDialog()
+  }
+
   return (
     <div className="w-full px-8 py-16">
       <div className="flex justify-between pb-6">
@@ -68,7 +80,11 @@ const Companies = () => {
           onView={handleView}
         />
       </div>
-      <CompanieDialog isOpen={DialogOpen} onClose={handleCloseDialog} />
+      <CompanieDialog
+        isOpen={DialogOpen}
+        onClose={handleCloseDialog}
+        onSave={handleSaveCompany}
+      />
     </div>
   )
 }

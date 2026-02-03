@@ -30,7 +30,7 @@ const Dialog = ({ isOpen, onClose, title, subtitle, footer, children }) => {
     >
       <div
         ref={nodeRef}
-        className="fixed inset-0 flex items-center justify-center bg-black/50"
+        className="fixed px-5 inset-0 flex items-center justify-center bg-black/50"
         onMouseDown={() => onClose?.()}
         role="dialog"
         aria-modal="true"

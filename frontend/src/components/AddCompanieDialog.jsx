@@ -30,8 +30,6 @@ const CompanieDialog = ({ isOpen, onClose, onSave }) => {
     setForm(initialForm)
   }
 
-  if (!isOpen) return null
-
   const footer = (
     <div className="mt-10 flex gap-3">
       <Button onClick={handleClose} size="lg" text="Cancelar" />

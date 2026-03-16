@@ -1,54 +1,44 @@
-import {
-  ArrowTrendingUpIcon,
-  BuildingOffice2Icon,
-  CurrencyDollarIcon,
-  DocumentCheckIcon,
-  HomeIcon,
-  UserGroupIcon,
-} from "@heroicons/react/24/solid"
-
 import SidebarButton from "./SidebarButton"
 
-const Sidebar = () => {
+const Sidebar = ({ activeView, items, onSelect }) => {
   return (
-    <div className="h-screen w-64 bg-white">
-      <div className="px-8 py-6">
-        <h1 className="text-xl font-semibold text-yellow-600">BR 459</h1>
-        <p>
-          Sistema{" "}
-          <span className="font-semibold text-yellow-600">
-            Gestão e Negócios
-          </span>
+    <aside className="sticky top-0 hidden h-screen w-[280px] shrink-0 border-r border-white/60 bg-[#f8f3ea]/90 px-4 py-5 backdrop-blur lg:block">
+      <div className="rounded-[24px] border border-white/80 bg-white/80 px-4 py-4 shadow-sm">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-amber-700">
+          BR-459
+        </p>
+        <h1 className="mt-2 text-lg font-semibold text-slate-900">
+          CRM orientado a demanda
+        </h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Negocio primeiro, produto depois.
         </p>
       </div>
 
-      <div className="flex flex-col gap-2 p-2">
-        <SidebarButton variant="unselected">
-          <HomeIcon className="h-6 w-6 text-yellow-600" />
-          Início
-        </SidebarButton>
-        <SidebarButton variant="unselected">
-          <DocumentCheckIcon className="h-6 w-6 text-yellow-600" />
-          Tarefas
-        </SidebarButton>
-        <SidebarButton variant="selected">
-          <BuildingOffice2Icon className="h-6 w-6 text-yellow-600" />
-          Empresas
-        </SidebarButton>
-        <SidebarButton variant="unselected">
-          <UserGroupIcon className="h-6 w-6 text-yellow-600" />
-          Pessoas
-        </SidebarButton>
-        <SidebarButton variant="unselected">
-          <CurrencyDollarIcon className="h-6 w-6 text-yellow-600" />
-          Negócios
-        </SidebarButton>
-        <SidebarButton variant="unselected">
-          <ArrowTrendingUpIcon className="h-6 w-6 text-yellow-600" />
-          Relatórios
-        </SidebarButton>
+      <div className="mt-6">
+        <p className="px-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
+          Modulos
+        </p>
+        <div className="mt-3 space-y-1 rounded-[20px] border border-white/80 bg-white/70 p-2 shadow-sm">
+          {items.map((item) => (
+            <SidebarButton
+              key={item.id}
+              description={item.description}
+              icon={<item.icon className="h-5 w-5" />}
+              isSelected={activeView === item.id}
+              label={item.label}
+              onClick={() => onSelect(item.id)}
+            />
+          ))}
+        </div>
       </div>
-    </div>
+
+      <div className="mt-4 px-2">
+        <p className="text-xs leading-5 text-slate-500">
+          Estoque deixa de ser o centro e passa a responder a demanda ativa.
+        </p>
+      </div>
+    </aside>
   )
 }
 

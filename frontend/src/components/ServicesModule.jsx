@@ -13,7 +13,7 @@ import { listDeals } from "../services/deals"
 import { createPerson, listPeople } from "../services/people"
 import { listProducts } from "../services/products"
 import { createService, listServices, removeService, updateService } from "../services/serviceRecords"
-import { formatCurrency, parseMoney } from "../utils/business"
+import { formatCurrency, formatCurrencyInput, parseMoney, toCurrencyInputValue } from "../utils/business"
 import CompanieDialog from "./AddCompanieDialog"
 import Button from "./Button"
 import Dialog from "./Dialog"
@@ -42,7 +42,7 @@ const baseForm = {
 const createFormState = (initialValues = {}) => ({
   ...baseForm,
   ...initialValues,
-  custo: initialValues.custo || (initialValues.custoValor != null ? String(initialValues.custoValor) : ""),
+  custo: toCurrencyInputValue(initialValues.custo || initialValues.custoValor),
   prazoDias: initialValues.prazoDias != null ? String(initialValues.prazoDias) : "",
 })
 
@@ -77,6 +77,10 @@ export const ServiceDialog = ({
 
   const handleChange = (field) => (event) => {
     setForm((current) => ({ ...current, [field]: event.target.value }))
+  }
+
+  const handleMoneyChange = (field) => (event) => {
+    setForm((current) => ({ ...current, [field]: formatCurrencyInput(event.target.value) }))
   }
 
   const handleSubmit = () => {
@@ -138,7 +142,7 @@ export const ServiceDialog = ({
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           <Input id="service-name" label="Servico" value={form.nome} onChange={handleChange("nome")} placeholder="Nome do servico" />
           <Select id="service-type" label="Tipo" value={form.tipo} onChange={handleChange("tipo")} options={typeOptions} />
-          <Input id="service-cost" label="Custo" value={form.custo} onChange={handleChange("custo")} placeholder="R$ 3.200" />
+          <Input id="service-cost" label="Custo" value={form.custo} onChange={handleMoneyChange("custo")} placeholder="R$ 3.200" />
           <Input id="service-deadline" label="Prazo (dias)" type="number" value={form.prazoDias} onChange={handleChange("prazoDias")} placeholder="Ex.: 5" />
           <Input id="service-impact" label="Impacto / observacao" value={form.impacto} onChange={handleChange("impacto")} placeholder="Como isso afeta margem ou entrega" />
           <Select id="service-status" label="Status" value={form.status} onChange={handleChange("status")} options={statusOptions} />

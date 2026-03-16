@@ -16,9 +16,10 @@ import { listServices } from "../services/serviceRecords"
 import {
   computeDealMetrics,
   formatCurrency,
+  formatCurrencyInput,
   formatPercent,
   getProductBaseCost,
-  parseMoney,
+  toCurrencyInputValue,
 } from "../utils/business"
 import CompanieDialog from "./AddCompanieDialog"
 import Button from "./Button"
@@ -54,8 +55,9 @@ const createFormState = (initialValues = {}) => ({
   ...initialValues,
   dataNegocio: (initialValues.dataNegocio || initialValues.createdAt || getToday()).slice(0, 10),
   prazoDias: initialValues.prazoDias != null ? String(initialValues.prazoDias) : "",
-  custoBaseEstimado: initialValues.custoBaseEstimado || (initialValues.productId ? "" : String(initialValues.custoBase || "")),
-  valorReferenciaVenda: initialValues.valorReferenciaVenda || String(initialValues.valorReferencia || initialValues.valorVenda || ""),
+  propostaCliente: toCurrencyInputValue(initialValues.propostaCliente),
+  custoBaseEstimado: initialValues.productId ? "" : toCurrencyInputValue(initialValues.custoBaseEstimado || initialValues.custoBase),
+  valorReferenciaVenda: toCurrencyInputValue(initialValues.valorReferenciaVenda || initialValues.valorReferencia || initialValues.valorVenda),
 })
 
 const DealDialog = ({
@@ -113,6 +115,10 @@ const DealDialog = ({
 
   const handleChange = (field) => (event) => {
     setForm((prev) => ({ ...prev, [field]: event.target.value }))
+  }
+
+  const handleMoneyChange = (field) => (event) => {
+    setForm((prev) => ({ ...prev, [field]: formatCurrencyInput(event.target.value) }))
   }
 
   const handleSubmit = () => {
@@ -215,14 +221,14 @@ const DealDialog = ({
           ) : (
             <>
               <Input id="deal-manual-product-sale" label="Caminhao que o cliente quer nos vender" value={form.descricaoProdutoManual} onChange={handleChange("descricaoProdutoManual")} placeholder="Modelo, ano, configuracao e observacoes" />
-              <Input id="deal-reference-value" label="Valor estimado de revenda" value={form.valorReferenciaVenda} onChange={handleChange("valorReferenciaVenda")} placeholder="R$ 690 mil" />
+              <Input id="deal-reference-value" label="Valor estimado de revenda" value={form.valorReferenciaVenda} onChange={handleMoneyChange("valorReferenciaVenda")} placeholder="R$ 690 mil" />
             </>
           )}
 
-          <Input id="deal-proposal" label={form.tipoDemanda === "Compra" ? "Proposta do cliente para comprar" : "Proposta do cliente para nos vender"} value={form.propostaCliente} onChange={handleChange("propostaCliente")} placeholder="R$ 650 mil" />
+          <Input id="deal-proposal" label={form.tipoDemanda === "Compra" ? "Proposta do cliente para comprar" : "Proposta do cliente para nos vender"} value={form.propostaCliente} onChange={handleMoneyChange("propostaCliente")} placeholder="R$ 650 mil" />
 
           {form.tipoDemanda === "Compra" ? (
-            <Input id="deal-base-cost" label={selectedProduct ? "Custo base do produto (calculado)" : "Custo base estimado"} value={selectedProduct ? formatCurrency(baseCostFromStock) : form.custoBaseEstimado} onChange={handleChange("custoBaseEstimado")} placeholder="R$ 610 mil" disabled={Boolean(selectedProduct)} />
+            <Input id="deal-base-cost" label={selectedProduct ? "Custo base do produto (calculado)" : "Custo base estimado"} value={selectedProduct ? formatCurrency(baseCostFromStock) : form.custoBaseEstimado} onChange={handleMoneyChange("custoBaseEstimado")} placeholder="R$ 610 mil" disabled={Boolean(selectedProduct)} />
           ) : (
             <Input id="deal-reference-helper" label="Lucro estimado na revenda" value={formatCurrency(metrics.lucroValor)} readOnly />
           )}

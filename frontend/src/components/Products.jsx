@@ -16,12 +16,14 @@ import { createService, listServices } from "../services/serviceRecords"
 import {
   buildProductRecommendation,
   formatCurrency,
+  formatCurrencyInput,
   formatPercent,
   getDaysInStock,
   getProductBaseCost,
   getProductEstimatedSale,
   getProductLinkedServices,
   parsePercent,
+  toCurrencyInputValue,
 } from "../utils/business"
 import Button from "./Button"
 import Dialog from "./Dialog"
@@ -48,7 +50,7 @@ const createFormState = (initialValues = {}) => ({
   ...baseForm,
   ...initialValues,
   dataEntrada: (initialValues.dataEntrada || initialValues.createdAt || getToday()).slice(0, 10),
-  valorAquisicao: initialValues.valorAquisicao || initialValues.capital || "",
+  valorAquisicao: toCurrencyInputValue(initialValues.valorAquisicao || initialValues.capital),
   margemEsperada: initialValues.margemEsperada || String(initialValues.margem || "10").replace("%", ""),
   linkedDealId: initialValues.linkedDealId || initialValues.currentDealId || "",
   serviceIds: initialValues.serviceIds || [],
@@ -99,6 +101,10 @@ const ProductDialog = ({
 
   const handleChange = (field) => (event) => {
     setForm((prev) => ({ ...prev, [field]: event.target.value }))
+  }
+
+  const handleMoneyChange = (field) => (event) => {
+    setForm((prev) => ({ ...prev, [field]: formatCurrencyInput(event.target.value) }))
   }
 
   const toggleService = (serviceId) => {
@@ -152,7 +158,7 @@ const ProductDialog = ({
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           <Input id="product-model" label="Modelo" value={form.modelo} onChange={handleChange("modelo")} placeholder="Ex.: Volvo FH 540 2021" />
           <Input id="product-entry" label="Data de entrada" type="date" value={form.dataEntrada} onChange={handleChange("dataEntrada")} />
-          <Input id="product-acquisition" label="Valor de aquisicao" value={form.valorAquisicao} onChange={handleChange("valorAquisicao")} placeholder="R$ 610 mil" />
+          <Input id="product-acquisition" label="Valor de aquisicao" value={form.valorAquisicao} onChange={handleMoneyChange("valorAquisicao")} placeholder="R$ 610 mil" />
           <Input id="product-margin" label="Margem esperada (%)" value={form.margemEsperada} onChange={handleChange("margemEsperada")} placeholder="10" />
           <Select id="product-status" label="Status" value={resolvedStatus} onChange={handleChange("status")} options={statusOptions} disabled={Boolean(form.linkedDealId)} />
           <Select

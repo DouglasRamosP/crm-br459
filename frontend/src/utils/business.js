@@ -1,9 +1,26 @@
-export const formatCurrency = (value) =>
-  new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 0,
-  }).format(Number(value || 0))
+const currencyFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+
+export const formatCurrency = (value) => currencyFormatter.format(Number(value || 0))
+
+const moneyDigitsOnly = (value) => String(value || "").replace(/\D/g, "")
+
+export const formatCurrencyInput = (value) => {
+  const digits = moneyDigitsOnly(value)
+
+  if (!digits) return ""
+
+  return formatCurrency(Number(digits) / 100)
+}
+
+export const toCurrencyInputValue = (value) => {
+  if (value == null || value === "") return ""
+  return formatCurrency(parseMoney(value))
+}
 
 export const parseMoney = (value) => {
   if (typeof value === "number") return value

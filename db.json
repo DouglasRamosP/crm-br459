@@ -120,6 +120,23 @@
       "recomendacao": "Produto pronto para venda",
       "currentDealId": "8d56",
       "updatedAt": "2026-03-16T18:50:45.816Z"
+    },
+    {
+      "id": "b066",
+      "modelo": "tecoteco",
+      "dataEntrada": "2026-03-16",
+      "valorAquisicao": "350000",
+      "margemEsperada": "10",
+      "status": "Disponivel",
+      "linkedDealId": "",
+      "serviceIds": [],
+      "recomendacao": "Produto pronto para abordagem comercial orientada por demanda.",
+      "totalServicos": 0,
+      "custoTotal": 350000,
+      "precoEstimadoVenda": 385000.00000000006,
+      "diasEmEstoque": 1,
+      "createdAt": "2026-03-16T19:55:59.533Z",
+      "updatedAt": "2026-03-16T19:55:59.533Z"
     }
   ],
   "services": [],

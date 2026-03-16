@@ -1,0 +1,127 @@
+{
+  "companies": [
+    {
+      "id": "1",
+      "nome": "Transvale Logistica",
+      "categoria": "Cliente PJ",
+      "responsavel": "Juliana Prado",
+      "email": "juliana.prado@transvale.com.br",
+      "telefone": "(35) 99911-2233"
+    },
+    {
+      "id": "2",
+      "nome": "Rodobras Seminovos",
+      "categoria": "Fornecedor",
+      "responsavel": "Rafael Abreu",
+      "email": "rafael@rodobras.com.br",
+      "telefone": "(62) 99877-1002"
+    },
+    {
+      "id": "3",
+      "nome": "Grupo Estrada Forte",
+      "categoria": "Parceiro",
+      "responsavel": "Mirela Nunes",
+      "email": "mirela@estradaforte.com.br",
+      "telefone": "(31) 99770-4545"
+    },
+    {
+      "id": "4",
+      "nome": "Pedreira Horizonte",
+      "categoria": "Cliente PJ",
+      "responsavel": "Aline Costa",
+      "email": "aline.costa@pedreirahorizonte.com.br",
+      "telefone": "(31) 99117-3308"
+    },
+    {
+      "id": "5",
+      "nome": "Cafe Mantiqueira",
+      "categoria": "Cliente PJ",
+      "responsavel": "Leandro Furtado",
+      "email": "leandro@cafemantiqueira.com.br",
+      "telefone": "(35) 99821-1401"
+    },
+    {
+      "id": "ba12",
+      "nome": "teste",
+      "categoria": "Cliente PJ",
+      "responsavel": "Douglas Ramos",
+      "email": "douglasramospimenta@gmail.com",
+      "telefone": "(35) 98852-6126"
+    }
+  ],
+  "people": [
+    {
+      "id": "0a38",
+      "nome": "Douglas Ramos",
+      "empresaId": "1",
+      "email": "douglasramospimenta@gmail.com",
+      "telefone": "",
+      "cidade": "Varginha",
+      "observacoes": "",
+      "papeis": [
+        "Cliente"
+      ],
+      "empresa": "Transvale Logistica",
+      "createdAt": "2026-03-16T18:49:17.015Z",
+      "updatedAt": "2026-03-16T18:49:17.015Z"
+    }
+  ],
+  "deals": [
+    {
+      "id": "dcdc",
+      "empresa": "Douglas Ramos",
+      "contato": "35988526126",
+      "tipoDemanda": "Busca no mercado",
+      "descricao": "Volvo FH 540 ",
+      "orcamento": "600",
+      "prioridade": "Alta",
+      "status": "Proposta",
+      "produtoStatus": "Sem produto"
+    },
+    {
+      "id": "8d56",
+      "personId": "0a38",
+      "contato": "Douglas Ramos",
+      "companyId": "1",
+      "empresa": "Transvale Logistica",
+      "tipoDemanda": "Compra",
+      "descricao": "fgfdg",
+      "dataNegocio": "2026-03-16T15:00:00.000Z",
+      "createdAt": "2026-03-16T15:00:00.000Z",
+      "prazoDias": 13,
+      "productId": "3243",
+      "produtoNegociado": "Volvo FH 540",
+      "descricaoProdutoManual": "",
+      "produtoOrigem": "Estoque",
+      "produtoStatus": "Associado",
+      "propostaCliente": "380",
+      "valorVenda": "380",
+      "custoBase": 350,
+      "custoBaseFormatado": "R$ 350",
+      "valorReferencia": 380,
+      "valorReferenciaFormatado": "R$ 380",
+      "lucroValor": 30,
+      "lucroPercentual": 7.894736842105263,
+      "lucroReal": "R$ 30",
+      "margemReal": "7,9%",
+      "prioridade": "Media",
+      "status": "Interesse",
+      "updatedAt": "2026-03-16T18:50:45.804Z"
+    }
+  ],
+  "products": [
+    {
+      "id": "3243",
+      "modelo": "Volvo FH 540",
+      "status": "Em negociacao",
+      "diasEmEstoque": 0,
+      "capital": "350",
+      "margem": "10%",
+      "recomendacao": "Produto pronto para venda",
+      "currentDealId": "8d56",
+      "updatedAt": "2026-03-16T18:50:45.816Z"
+    }
+  ],
+  "services": [],
+  "$schema": "./node_modules/json-server/schema.json"
+}

@@ -5,7 +5,7 @@ import {
   PlusIcon,
   TrashIcon,
 } from "@heroicons/react/24/solid"
-import { useEffect, useEffectEvent, useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 import { createCompany, listCompanies } from "../services/companies"
@@ -74,13 +74,12 @@ const DealDialog = ({
   const [isQuickSavingPerson, setQuickSavingPerson] = useState(false)
   const [isQuickSavingCompany, setQuickSavingCompany] = useState(false)
 
-  useEffect(() => {
-    if (!isOpen) {
-      setForm(initialForm)
-      setPersonDialogOpen(false)
-      setCompanyDialogOpen(false)
-    }
-  }, [isOpen])
+  const handleClose = () => {
+    setForm(initialForm)
+    setPersonDialogOpen(false)
+    setCompanyDialogOpen(false)
+    onClose?.()
+  }
 
   const selectedPerson = people.find((person) => person.id === form.personId)
   const selectedCompany = companies.find((company) => company.id === form.companyId)
@@ -192,7 +191,7 @@ const DealDialog = ({
 
   const footer = (
     <div className="mt-8 flex gap-3">
-      <Button text="Cancelar" size="lg" onClick={onClose} disabled={isSaving} />
+      <Button text="Cancelar" size="lg" onClick={handleClose} disabled={isSaving} />
       <Button
         text={isSaving ? "Salvando..." : "Salvar negocio"}
         size="lg"
@@ -206,7 +205,7 @@ const DealDialog = ({
     <>
       <Dialog
         isOpen={isOpen}
-        onClose={isSaving ? undefined : onClose}
+        onClose={isSaving ? undefined : handleClose}
         title="Cadastrar negocio"
         subtitle="Selecione quem originou a demanda, defina o produto e veja o lucro estimado antes de salvar."
         footer={footer}
@@ -350,7 +349,7 @@ const Deals = () => {
   const [isSaving, setIsSaving] = useState(false)
   const [isDialogOpen, setDialogOpen] = useState(false)
 
-  const loadDeals = useEffectEvent(async () => {
+  const loadDeals = async () => {
     setIsLoading(true)
 
     try {
@@ -372,7 +371,7 @@ const Deals = () => {
     } finally {
       setIsLoading(false)
     }
-  })
+  }
 
   useEffect(() => {
     loadDeals()

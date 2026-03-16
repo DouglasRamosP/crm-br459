@@ -5,7 +5,7 @@ import {
   TrashIcon,
   WrenchScrewdriverIcon,
 } from "@heroicons/react/24/solid"
-import { useEffect, useEffectEvent, useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 import { createCompany, listCompanies } from "../services/companies"
@@ -57,11 +57,12 @@ const ServiceDialog = ({
   const [isQuickSavingPerson, setQuickSavingPerson] = useState(false)
   const [isQuickSavingCompany, setQuickSavingCompany] = useState(false)
 
-  useEffect(() => {
-    if (!isOpen) {
-      setForm(initialForm)
-    }
-  }, [isOpen])
+  const handleClose = () => {
+    setForm(initialForm)
+    setPersonDialogOpen(false)
+    setCompanyDialogOpen(false)
+    onClose?.()
+  }
 
   const handleChange = (field) => (event) => {
     setForm((current) => ({ ...current, [field]: event.target.value }))
@@ -114,14 +115,14 @@ const ServiceDialog = ({
 
   const footer = (
     <div className="mt-8 flex gap-3">
-      <Button text="Cancelar" size="lg" onClick={onClose} disabled={isSaving} />
+      <Button text="Cancelar" size="lg" onClick={handleClose} disabled={isSaving} />
       <Button text={isSaving ? "Salvando..." : "Salvar servico"} size="lg" onClick={handleSubmit} disabled={isSaving} />
     </div>
   )
 
   return (
     <>
-      <Dialog isOpen={isOpen} onClose={isSaving ? undefined : onClose} title="Cadastrar servico" subtitle="Relacione custo, prestador e impacto com os modulos corretos." footer={footer}>
+      <Dialog isOpen={isOpen} onClose={isSaving ? undefined : handleClose} title="Cadastrar servico" subtitle="Relacione custo, prestador e impacto com os modulos corretos." footer={footer}>
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           <Input id="service-name" label="Servico" value={form.nome} onChange={handleChange("nome")} placeholder="Nome do servico" />
           <Select id="service-type" label="Tipo" value={form.tipo} onChange={handleChange("tipo")} options={typeOptions} />
@@ -189,7 +190,7 @@ const Services = () => {
   const [isSaving, setIsSaving] = useState(false)
   const [isDialogOpen, setDialogOpen] = useState(false)
 
-  const loadServices = useEffectEvent(async () => {
+  const loadServices = async () => {
     setIsLoading(true)
 
     try {
@@ -211,7 +212,7 @@ const Services = () => {
     } finally {
       setIsLoading(false)
     }
-  })
+  }
 
   useEffect(() => {
     loadServices()

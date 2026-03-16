@@ -5,7 +5,7 @@ import {
   TrashIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/solid"
-import { useEffect, useEffectEvent, useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 import { listCompanies } from "../services/companies"
@@ -43,7 +43,7 @@ const People = () => {
   const [isSaving, setIsSaving] = useState(false)
   const [isDialogOpen, setDialogOpen] = useState(false)
 
-  const loadPeople = useEffectEvent(async () => {
+  const loadPeople = async () => {
     setIsLoading(true)
 
     try {
@@ -63,7 +63,7 @@ const People = () => {
     } finally {
       setIsLoading(false)
     }
-  })
+  }
 
   useEffect(() => {
     loadPeople()

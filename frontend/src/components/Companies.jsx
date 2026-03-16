@@ -1,5 +1,5 @@
 import { ArrowPathIcon, BuildingOffice2Icon, PlusIcon } from "@heroicons/react/24/solid"
-import { useEffect, useEffectEvent, useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 import { createCompany, listCompanies, removeCompany } from "../services/companies"
@@ -31,7 +31,7 @@ const Companies = () => {
   const [isSaving, setIsSaving] = useState(false)
   const [isSavingPerson, setIsSavingPerson] = useState(false)
 
-  const loadCompanies = useEffectEvent(async () => {
+  const loadCompanies = async () => {
     setIsLoading(true)
 
     try {
@@ -51,7 +51,7 @@ const Companies = () => {
     } finally {
       setIsLoading(false)
     }
-  })
+  }
 
   useEffect(() => {
     loadCompanies()

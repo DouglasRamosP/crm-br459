@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 import Button from "./Button"
 import Dialog from "./Dialog"
@@ -27,11 +27,10 @@ const PersonDialog = ({
 }) => {
   const [form, setForm] = useState(initialForm)
 
-  useEffect(() => {
-    if (!isOpen) {
-      setForm(initialForm)
-    }
-  }, [isOpen])
+  const handleClose = () => {
+    setForm(initialForm)
+    onClose?.()
+  }
 
   const handleChange = (field) => (event) => {
     setForm((current) => ({ ...current, [field]: event.target.value }))
@@ -64,7 +63,7 @@ const PersonDialog = ({
 
   const footer = (
     <div className="mt-8 flex flex-wrap gap-3">
-      <Button text="Cancelar" size="lg" onClick={onClose} disabled={isSaving} />
+      <Button text="Cancelar" size="lg" onClick={handleClose} disabled={isSaving} />
       <Button
         text={isSaving ? "Salvando..." : "Salvar pessoa"}
         size="lg"
@@ -77,7 +76,7 @@ const PersonDialog = ({
   return (
     <Dialog
       isOpen={isOpen}
-      onClose={isSaving ? undefined : onClose}
+      onClose={isSaving ? undefined : handleClose}
       title="Cadastrar pessoa"
       subtitle="Pessoa tem identidade unica e pode acumular multiplos papeis."
       footer={footer}

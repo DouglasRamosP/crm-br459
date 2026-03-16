@@ -10,7 +10,7 @@ import {
   UserGroupIcon,
   WrenchScrewdriverIcon,
 } from "@heroicons/react/24/solid"
-import { useEffect, useEffectEvent, useState } from "react"
+import { useEffect, useState } from "react"
 
 import { aiInsights, businessPrinciples, peopleInsights } from "../constants/businessData"
 import { listCompanies } from "../services/companies"
@@ -510,7 +510,7 @@ const WonDealsTable = ({ deals }) => {
   )
 }
 
-const InsightList = ({ items, icon: Icon, accent = "amber" }) => {
+const InsightList = ({ items, icon, accent = "amber" }) => {
   const tone = toneMap[accent] ?? toneMap.amber
 
   return (
@@ -518,7 +518,7 @@ const InsightList = ({ items, icon: Icon, accent = "amber" }) => {
       {items.map((text) => (
         <div key={text} className="flex items-start gap-3 rounded-3xl border border-slate-200/70 bg-slate-50/70 p-4">
           <div className={`rounded-2xl p-2 ${tone.badge}`}>
-            <Icon className="h-5 w-5" />
+            {icon}
           </div>
           <p className="text-sm leading-6 text-slate-700">{text}</p>
         </div>
@@ -544,7 +544,7 @@ const DashboardView = () => {
   )
   const [customEnd, setCustomEnd] = useState(formatDateInput(today))
 
-  const loadSnapshot = useEffectEvent(async () => {
+  const loadSnapshot = async () => {
     setIsLoading(true)
     setError("")
 
@@ -563,7 +563,7 @@ const DashboardView = () => {
     } finally {
       setIsLoading(false)
     }
-  })
+  }
 
   useEffect(() => {
     loadSnapshot()
@@ -720,7 +720,7 @@ const BusinessView = () => (
   <div className="space-y-6">
     <Deals />
     <SectionCard eyebrow="Principios" title="Regras que guiam o modulo" description="Essas regras evitam que o fluxo volte a ser centrado em estoque.">
-      <InsightList items={businessPrinciples} icon={BriefcaseIcon} accent="amber" />
+      <InsightList items={businessPrinciples} icon={<BriefcaseIcon className="h-5 w-5" />} accent="amber" />
     </SectionCard>
   </div>
 )
@@ -729,7 +729,7 @@ const StockView = () => (
   <div className="space-y-6">
     <Products />
     <SectionCard eyebrow="IA de estoque" title="Sugestoes para precificacao e compra" description="A inteligencia observa a demanda aberta e indica quando vale girar, comprar ou reposicionar.">
-      <InsightList items={aiInsights} icon={TruckIcon} accent="amber" />
+      <InsightList items={aiInsights} icon={<TruckIcon className="h-5 w-5" />} accent="amber" />
     </SectionCard>
   </div>
 )
@@ -738,7 +738,7 @@ const PeopleView = () => (
   <div className="space-y-6">
     <People />
     <SectionCard eyebrow="Visao de relacionamento" title="Comportamentos que ajudam a vender melhor" description="Preferencia de contato, regiao, papel e sinal de compra precisam guiar a rotina comercial.">
-      <InsightList items={peopleInsights.map((person) => `${person.name}: ${person.preference}. Papel atual: ${person.role}.`)} icon={UserGroupIcon} accent="emerald" />
+      <InsightList items={peopleInsights.map((person) => `${person.name}: ${person.preference}. Papel atual: ${person.role}.`)} icon={<UserGroupIcon className="h-5 w-5" />} accent="emerald" />
     </SectionCard>
   </div>
 )
@@ -751,7 +751,7 @@ const CompaniesView = () => (
         "Uma empresa pode ter varias pessoas com papeis distintos no mesmo negocio.",
         "Uma empresa pode originar multiplas oportunidades ao longo do tempo.",
         "Historico comercial, operacional e financeiro deve ficar centralizado na empresa.",
-      ]} icon={BuildingOffice2Icon} accent="slate" />
+      ]} icon={<BuildingOffice2Icon className="h-5 w-5" />} accent="slate" />
     </SectionCard>
   </div>
 )

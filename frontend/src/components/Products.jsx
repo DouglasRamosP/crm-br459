@@ -5,7 +5,7 @@ import {
   TrashIcon,
   TruckIcon,
 } from "@heroicons/react/24/solid"
-import { useEffect, useEffectEvent, useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 import { listDeals, updateDeal } from "../services/deals"
@@ -44,11 +44,10 @@ const initialForm = {
 const ProductDialog = ({ isOpen, isSaving, onClose, onSave, deals, services }) => {
   const [form, setForm] = useState(initialForm)
 
-  useEffect(() => {
-    if (!isOpen) {
-      setForm(initialForm)
-    }
-  }, [isOpen])
+  const handleClose = () => {
+    setForm(initialForm)
+    onClose?.()
+  }
 
   const selectedServices = services.filter((service) => form.serviceIds.includes(service.id))
   const acquisition = getProductBaseCost({ valorAquisicao: form.valorAquisicao, serviceIds: form.serviceIds }, selectedServices)
@@ -95,7 +94,7 @@ const ProductDialog = ({ isOpen, isSaving, onClose, onSave, deals, services }) =
 
   const footer = (
     <div className="mt-8 flex gap-3">
-      <Button text="Cancelar" size="lg" onClick={onClose} disabled={isSaving} />
+      <Button text="Cancelar" size="lg" onClick={handleClose} disabled={isSaving} />
       <Button text={isSaving ? "Salvando..." : "Salvar produto"} size="lg" onClick={handleSubmit} disabled={isSaving} />
     </div>
   )
@@ -103,7 +102,7 @@ const ProductDialog = ({ isOpen, isSaving, onClose, onSave, deals, services }) =
   return (
     <Dialog
       isOpen={isOpen}
-      onClose={isSaving ? undefined : onClose}
+      onClose={isSaving ? undefined : handleClose}
       title="Cadastrar produto"
       subtitle="Cadastre custo, margem, servicos atrelados e potencial de venda."
       footer={footer}
@@ -197,7 +196,7 @@ const Products = () => {
   const [isSaving, setIsSaving] = useState(false)
   const [isDialogOpen, setDialogOpen] = useState(false)
 
-  const loadProducts = useEffectEvent(async () => {
+  const loadProducts = async () => {
     setIsLoading(true)
 
     try {
@@ -220,7 +219,7 @@ const Products = () => {
     } finally {
       setIsLoading(false)
     }
-  })
+  }
 
   useEffect(() => {
     loadProducts()

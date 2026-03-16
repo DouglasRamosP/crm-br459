@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 import Button from "./Button"
 import Dialog from "./Dialog"
@@ -26,11 +26,10 @@ const CompanieDialog = ({
 }) => {
   const [form, setForm] = useState(initialForm)
 
-  useEffect(() => {
-    if (!isOpen) {
-      setForm(initialForm)
-    }
-  }, [isOpen])
+  const handleClose = () => {
+    setForm(initialForm)
+    onClose?.()
+  }
 
   const handleChange = (field) => (event) => {
     setForm((current) => ({ ...current, [field]: event.target.value }))
@@ -63,7 +62,7 @@ const CompanieDialog = ({
 
   const footer = (
     <div className="mt-8 flex flex-wrap gap-3">
-      <Button onClick={onClose} size="lg" text="Cancelar" disabled={isSaving} />
+      <Button onClick={handleClose} size="lg" text="Cancelar" disabled={isSaving} />
       <Button
         onClick={handleSubmit}
         size="lg"
@@ -76,7 +75,7 @@ const CompanieDialog = ({
   return (
     <Dialog
       isOpen={isOpen}
-      onClose={isSaving ? undefined : onClose}
+      onClose={isSaving ? undefined : handleClose}
       title="Cadastrar empresa"
       subtitle="Empresa organiza o historico institucional e aponta para pessoas reais."
       footer={footer}

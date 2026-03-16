@@ -8,9 +8,11 @@ import {
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
+import { createCompany, listCompanies } from "../services/companies"
 import { listDeals, updateDeal } from "../services/deals"
-import { createProduct, listProducts, removeProduct } from "../services/products"
-import { listServices } from "../services/serviceRecords"
+import { createPerson, listPeople } from "../services/people"
+import { createProduct, listProducts, removeProduct, updateProduct } from "../services/products"
+import { createService, listServices } from "../services/serviceRecords"
 import {
   buildProductRecommendation,
   formatCurrency,
@@ -25,12 +27,13 @@ import Button from "./Button"
 import Dialog from "./Dialog"
 import Input from "./Input"
 import Select from "./Select"
+import { ServiceDialog } from "./ServicesModule"
 
 const statusOptions = ["Disponivel", "Em negociacao", "Reservado", "Vendido"]
 
 const getToday = () => new Date().toISOString().slice(0, 10)
 
-const initialForm = {
+const baseForm = {
   modelo: "",
   dataEntrada: getToday(),
   valorAquisicao: "",
@@ -41,11 +44,40 @@ const initialForm = {
   recomendacao: "",
 }
 
-const ProductDialog = ({ isOpen, isSaving, onClose, onSave, deals, services }) => {
-  const [form, setForm] = useState(initialForm)
+const createFormState = (initialValues = {}) => ({
+  ...baseForm,
+  ...initialValues,
+  dataEntrada: (initialValues.dataEntrada || initialValues.createdAt || getToday()).slice(0, 10),
+  valorAquisicao: initialValues.valorAquisicao || initialValues.capital || "",
+  margemEsperada: initialValues.margemEsperada || String(initialValues.margem || "10").replace("%", ""),
+  linkedDealId: initialValues.linkedDealId || initialValues.currentDealId || "",
+  serviceIds: initialValues.serviceIds || [],
+})
+
+const ProductDialog = ({
+  isOpen,
+  isSaving,
+  onClose,
+  onSave,
+  deals,
+  services,
+  people,
+  companies,
+  onQuickCreateService,
+  onQuickCreatePerson,
+  onQuickCreateCompany,
+  initialValues = baseForm,
+  title = "Cadastrar produto",
+  subtitle = "Cadastre custo, margem, servicos atrelados e potencial de venda.",
+  submitText = "Salvar produto",
+}) => {
+  const [form, setForm] = useState(() => createFormState(initialValues))
+  const [isServiceDialogOpen, setServiceDialogOpen] = useState(false)
+  const [isQuickSavingService, setQuickSavingService] = useState(false)
 
   const handleClose = () => {
-    setForm(initialForm)
+    setForm(createFormState(initialValues))
+    setServiceDialogOpen(false)
     onClose?.()
   }
 
@@ -78,6 +110,21 @@ const ProductDialog = ({ isOpen, isSaving, onClose, onSave, deals, services }) =
     }))
   }
 
+  const handleQuickServiceSave = async (payload) => {
+    setQuickSavingService(true)
+
+    try {
+      const saved = await onQuickCreateService(payload)
+      setForm((current) => ({
+        ...current,
+        serviceIds: current.serviceIds.includes(saved.id) ? current.serviceIds : [...current.serviceIds, saved.id],
+      }))
+      setServiceDialogOpen(false)
+    } finally {
+      setQuickSavingService(false)
+    }
+  }
+
   const handleSubmit = () => {
     if (!form.modelo || !form.valorAquisicao || !form.dataEntrada) return
 
@@ -95,96 +142,117 @@ const ProductDialog = ({ isOpen, isSaving, onClose, onSave, deals, services }) =
   const footer = (
     <div className="mt-8 flex gap-3">
       <Button text="Cancelar" size="lg" onClick={handleClose} disabled={isSaving} />
-      <Button text={isSaving ? "Salvando..." : "Salvar produto"} size="lg" onClick={handleSubmit} disabled={isSaving} />
+      <Button text={isSaving ? "Salvando..." : submitText} size="lg" onClick={handleSubmit} disabled={isSaving} />
     </div>
   )
 
   return (
-    <Dialog
-      isOpen={isOpen}
-      onClose={isSaving ? undefined : handleClose}
-      title="Cadastrar produto"
-      subtitle="Cadastre custo, margem, servicos atrelados e potencial de venda."
-      footer={footer}
-    >
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-        <Input id="product-model" label="Modelo" value={form.modelo} onChange={handleChange("modelo")} placeholder="Ex.: Volvo FH 540 2021" />
-        <Input id="product-entry" label="Data de entrada" type="date" value={form.dataEntrada} onChange={handleChange("dataEntrada")} />
-        <Input id="product-acquisition" label="Valor de aquisicao" value={form.valorAquisicao} onChange={handleChange("valorAquisicao")} placeholder="R$ 610 mil" />
-        <Input id="product-margin" label="Margem esperada (%)" value={form.margemEsperada} onChange={handleChange("margemEsperada")} placeholder="10" />
-        <Select id="product-status" label="Status" value={resolvedStatus} onChange={handleChange("status")} options={statusOptions} disabled={Boolean(form.linkedDealId)} />
-        <Select
-          id="product-deal"
-          label="Negocio vinculado (opcional)"
-          value={form.linkedDealId}
-          onChange={handleChange("linkedDealId")}
-          options={[
-            { label: "Sem negocio vinculado", value: "" },
-            ...deals.map((deal) => ({
-              label: `${deal.empresa || deal.pessoa || "Negocio"} - ${deal.descricao}`,
-              value: deal.id,
-            })),
-          ]}
-        />
-        <Input id="product-recommendation" label="Recomendacao comercial" value={form.recomendacao} onChange={handleChange("recomendacao")} placeholder="Sugestao para acelerar a venda" />
-      </div>
+    <>
+      <Dialog isOpen={isOpen} onClose={isSaving ? undefined : handleClose} title={title} subtitle={subtitle} footer={footer}>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <Input id="product-model" label="Modelo" value={form.modelo} onChange={handleChange("modelo")} placeholder="Ex.: Volvo FH 540 2021" />
+          <Input id="product-entry" label="Data de entrada" type="date" value={form.dataEntrada} onChange={handleChange("dataEntrada")} />
+          <Input id="product-acquisition" label="Valor de aquisicao" value={form.valorAquisicao} onChange={handleChange("valorAquisicao")} placeholder="R$ 610 mil" />
+          <Input id="product-margin" label="Margem esperada (%)" value={form.margemEsperada} onChange={handleChange("margemEsperada")} placeholder="10" />
+          <Select id="product-status" label="Status" value={resolvedStatus} onChange={handleChange("status")} options={statusOptions} disabled={Boolean(form.linkedDealId)} />
+          <Select
+            id="product-deal"
+            label="Negocio vinculado (opcional)"
+            value={form.linkedDealId}
+            onChange={handleChange("linkedDealId")}
+            options={[
+              { label: "Sem negocio vinculado", value: "" },
+              ...deals.map((deal) => ({
+                label: `${deal.empresa || deal.pessoa || "Negocio"} - ${deal.descricao}`,
+                value: deal.id,
+              })),
+            ]}
+          />
+          <Input id="product-recommendation" label="Recomendacao comercial" value={form.recomendacao} onChange={handleChange("recomendacao")} placeholder="Sugestao para acelerar a venda" />
+        </div>
 
-      <div className="mt-5 rounded-[24px] border border-slate-200 bg-slate-50 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-semibold text-slate-800">Servicos atrelados</p>
-            <p className="text-sm text-slate-500">Esses custos entram automaticamente no custo total do produto.</p>
+        <div className="mt-5 rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-slate-800">Servicos atrelados</p>
+              <p className="text-sm text-slate-500">Esses custos entram automaticamente no custo total do produto.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">{selectedServices.length} selecionados</span>
+              <Button text="Registrar servico" size="sm" className="bg-slate-900 text-white" onClick={() => setServiceDialogOpen(true)} />
+            </div>
           </div>
-          <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">
-            {selectedServices.length} selecionados
-          </span>
-        </div>
-        <div className="mt-4 flex flex-wrap gap-3">
-          {services.length ? (
-            services.map((service) => {
-              const active = form.serviceIds.includes(service.id)
+          <div className="mt-4 flex flex-wrap gap-3">
+            {services.length ? (
+              services.map((service) => {
+                const active = form.serviceIds.includes(service.id)
 
-              return (
-                <button
-                  key={service.id}
-                  type="button"
-                  onClick={() => toggleService(service.id)}
-                  className={`rounded-2xl px-4 py-3 text-left text-sm transition ${
-                    active
-                      ? "bg-slate-900 text-white"
-                      : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100"
-                  }`}
-                >
-                  <p className="font-semibold">{service.nome}</p>
-                  <p className="mt-1 text-xs opacity-80">{service.custo || formatCurrency(service.custoValor || 0)}</p>
-                </button>
-              )
-            })
-          ) : (
-            <p className="text-sm text-slate-500">Cadastre servicos antes de vincular custos ao produto.</p>
-          )}
+                return (
+                  <button
+                    key={service.id}
+                    type="button"
+                    onClick={() => toggleService(service.id)}
+                    className={`rounded-2xl px-4 py-3 text-left text-sm transition ${active ? "bg-slate-900 text-white" : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100"}`}
+                  >
+                    <p className="font-semibold">{service.nome}</p>
+                    <p className="mt-1 text-xs opacity-80">{service.custo || formatCurrency(service.custoValor || 0)}</p>
+                  </button>
+                )
+              })
+            ) : (
+              <p className="text-sm text-slate-500">Nenhum servico cadastrado ainda. Use o botao acima para registrar o primeiro.</p>
+            )}
+          </div>
+          {selectedServices.length ? (
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {selectedServices.map((service) => (
+                <div key={service.id} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+                  <p className="font-semibold text-slate-900">{service.nome}</p>
+                  <p className="mt-1">{service.tipo || "Sem tipo"} | {service.status || "Sem status"}</p>
+                  <p className="mt-1 text-slate-500">{service.custo || formatCurrency(service.custoValor || 0)}</p>
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
-      </div>
 
-      <div className="mt-5 grid gap-3 md:grid-cols-4">
-        <article className="rounded-2xl bg-slate-50 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Dias em estoque</p>
-          <p className="mt-2 text-xl font-semibold text-slate-900">{getDaysInStock({ dataEntrada: form.dataEntrada })}</p>
-        </article>
-        <article className="rounded-2xl bg-slate-50 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Custo total</p>
-          <p className="mt-2 text-xl font-semibold text-slate-900">{formatCurrency(acquisition)}</p>
-        </article>
-        <article className="rounded-2xl bg-slate-50 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Margem</p>
-          <p className="mt-2 text-xl font-semibold text-slate-900">{formatPercent(parsePercent(form.margemEsperada))}</p>
-        </article>
-        <article className="rounded-2xl bg-slate-50 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Venda estimada</p>
-          <p className="mt-2 text-xl font-semibold text-slate-900">{formatCurrency(estimatedSale)}</p>
-        </article>
-      </div>
-    </Dialog>
+        <div className="mt-5 grid gap-3 md:grid-cols-4">
+          <article className="rounded-2xl bg-slate-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Dias em estoque</p>
+            <p className="mt-2 text-xl font-semibold text-slate-900">{getDaysInStock({ dataEntrada: form.dataEntrada })}</p>
+          </article>
+          <article className="rounded-2xl bg-slate-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Custo total</p>
+            <p className="mt-2 text-xl font-semibold text-slate-900">{formatCurrency(acquisition)}</p>
+          </article>
+          <article className="rounded-2xl bg-slate-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Margem</p>
+            <p className="mt-2 text-xl font-semibold text-slate-900">{formatPercent(parsePercent(form.margemEsperada))}</p>
+          </article>
+          <article className="rounded-2xl bg-slate-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Venda estimada</p>
+            <p className="mt-2 text-xl font-semibold text-slate-900">{formatCurrency(estimatedSale)}</p>
+          </article>
+        </div>
+      </Dialog>
+
+      <ServiceDialog
+        key={`product-service-${isServiceDialogOpen ? "open" : "closed"}`}
+        isOpen={isServiceDialogOpen}
+        isSaving={isQuickSavingService}
+        onClose={() => setServiceDialogOpen(false)}
+        onSave={handleQuickServiceSave}
+        people={people}
+        companies={companies}
+        products={[]}
+        deals={deals}
+        onQuickCreatePerson={onQuickCreatePerson}
+        onQuickCreateCompany={onQuickCreateCompany}
+        title="Registrar servico rapido"
+        subtitle="O servico sera salvo no modulo Servicos e ja aparecera na previa deste produto."
+        submitText="Salvar servico"
+      />
+    </>
   )
 }
 
@@ -192,28 +260,30 @@ const Products = () => {
   const [products, setProducts] = useState([])
   const [deals, setDeals] = useState([])
   const [services, setServices] = useState([])
+  const [people, setPeople] = useState([])
+  const [companies, setCompanies] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isDialogOpen, setDialogOpen] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState(null)
 
   const loadProducts = async () => {
     setIsLoading(true)
 
     try {
-      const [productsData, dealsData, servicesData] = await Promise.all([
+      const [productsData, dealsData, servicesData, peopleData, companiesData] = await Promise.all([
         listProducts(),
         listDeals(),
         listServices(),
+        listPeople(),
+        listCompanies(),
       ])
 
       setProducts(productsData)
       setDeals(dealsData)
-      setServices(
-        servicesData.map((service) => ({
-          ...service,
-          custoValor: service.custoValor ?? 0,
-        }))
-      )
+      setPeople(peopleData)
+      setCompanies(companiesData)
+      setServices(servicesData.map((service) => ({ ...service, custoValor: service.custoValor ?? 0 })))
     } catch (error) {
       toast.error(error.message)
     } finally {
@@ -250,24 +320,43 @@ const Products = () => {
     })
   }
 
+  const syncDealLink = async (productId, modelo, linkedDealId, previousDealId = "") => {
+    if (previousDealId && previousDealId !== linkedDealId) {
+      await updateDeal(previousDealId, {
+        productId: "",
+        produtoStatus: "Sem produto",
+        produtoOrigem: "Manual",
+      })
+    }
+
+    if (linkedDealId) {
+      await updateDeal(linkedDealId, {
+        productId,
+        produtoNegociado: modelo,
+        produtoStatus: "Associado",
+        produtoOrigem: "Estoque",
+      })
+    }
+  }
+
   const handleSave = async (payload) => {
     setIsSaving(true)
 
     try {
-      const saved = await createProduct(payload)
-
-      if (payload.linkedDealId) {
-        await updateDeal(payload.linkedDealId, {
-          productId: saved.id,
-          produtoNegociado: saved.modelo,
-          produtoStatus: "Associado",
-          produtoOrigem: "Estoque",
-        })
+      if (selectedProduct) {
+        const saved = await updateProduct(selectedProduct.id, payload)
+        await syncDealLink(saved.id, saved.modelo, payload.linkedDealId, selectedProduct.linkedDealId || selectedProduct.currentDealId || "")
+        setProducts((current) => current.map((item) => (item.id === selectedProduct.id ? saved : item)))
+        toast.success("Produto atualizado com sucesso")
+      } else {
+        const saved = await createProduct(payload)
+        await syncDealLink(saved.id, saved.modelo, payload.linkedDealId)
+        setProducts((current) => [saved, ...current])
+        toast.success("Produto adicionado com sucesso")
       }
 
-      setProducts((current) => [saved, ...current])
       setDialogOpen(false)
-      toast.success("Produto adicionado com sucesso")
+      setSelectedProduct(null)
       await loadProducts()
     } catch (error) {
       toast.error(error.message)
@@ -276,21 +365,38 @@ const Products = () => {
     }
   }
 
-  const handleView = (product) => {
-    const cost = getProductBaseCost(product, services)
-    const estimatedSale = getProductEstimatedSale(product, services)
-
-    toast(
-      `${product.modelo} | ${product.status} | Custo total: ${formatCurrency(cost)} | Venda estimada: ${formatCurrency(estimatedSale)}`
-    )
+  const handleQuickCreateService = async (payload) => {
+    const saved = await createService(payload)
+    setServices((current) => [saved, ...current])
+    toast.success("Servico adicionado com sucesso")
+    return saved
   }
 
-  const averageMargin = products.length
-    ? formatPercent(
-        products.reduce((sum, product) => sum + parsePercent(product.margemEsperada || product.margem), 0) /
-          products.length
-      )
-    : "0,0%"
+  const handleQuickCreatePerson = async (payload) => {
+    const saved = await createPerson(payload)
+    setPeople((current) => [saved, ...current])
+    toast.success("Pessoa adicionada com sucesso")
+    return saved
+  }
+
+  const handleQuickCreateCompany = async (payload) => {
+    const saved = await createCompany(payload)
+    setCompanies((current) => [saved, ...current])
+    toast.success("Empresa adicionada com sucesso")
+    return saved
+  }
+
+  const handleView = (product) => {
+    setSelectedProduct(product)
+    setDialogOpen(true)
+  }
+
+  const openCreate = () => {
+    setSelectedProduct(null)
+    setDialogOpen(true)
+  }
+
+  const averageMargin = products.length ? formatPercent(products.reduce((sum, product) => sum + parsePercent(product.margemEsperada || product.margem), 0) / products.length) : "0,0%"
 
   const summaryCards = [
     { label: "Produtos em estoque", value: products.length, detail: "Ativos acompanhados com custo total e potencial de venda." },
@@ -308,7 +414,7 @@ const Products = () => {
         </div>
         <div className="flex gap-2">
           <Button onClick={loadProducts} text="Atualizar" size="md" className="bg-white text-slate-700 ring-1 ring-slate-200" icon={<ArrowPathIcon className="h-4 w-4" />} disabled={isLoading} />
-          <Button onClick={() => setDialogOpen(true)} text="Adicionar produto" icon={<PlusIcon className="h-4 w-4" />} />
+          <Button onClick={openCreate} text="Adicionar produto" icon={<PlusIcon className="h-4 w-4" />} />
         </div>
       </div>
       <div className="mt-6 grid gap-3 md:grid-cols-3">
@@ -344,7 +450,27 @@ const Products = () => {
           </table>
         )}
       </div>
-      <ProductDialog isOpen={isDialogOpen} isSaving={isSaving} onClose={() => setDialogOpen(false)} onSave={handleSave} deals={deals} services={services} />
+      <ProductDialog
+        key={selectedProduct?.id || "new-product"}
+        isOpen={isDialogOpen}
+        isSaving={isSaving}
+        onClose={() => {
+          setDialogOpen(false)
+          setSelectedProduct(null)
+        }}
+        onSave={handleSave}
+        deals={deals}
+        services={services}
+        people={people}
+        companies={companies}
+        onQuickCreateService={handleQuickCreateService}
+        onQuickCreatePerson={handleQuickCreatePerson}
+        onQuickCreateCompany={handleQuickCreateCompany}
+        initialValues={selectedProduct || undefined}
+        title={selectedProduct ? `Detalhes de ${selectedProduct.modelo}` : "Cadastrar produto"}
+        subtitle={selectedProduct ? "Revise custos, servicos, recomendacao e negocio vinculado deste produto." : "Cadastre custo, margem, servicos atrelados e potencial de venda."}
+        submitText={selectedProduct ? "Salvar alteracoes" : "Salvar produto"}
+      />
     </section>
   )
 }

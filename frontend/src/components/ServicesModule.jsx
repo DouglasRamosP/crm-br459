@@ -12,7 +12,7 @@ import { createCompany, listCompanies } from "../services/companies"
 import { listDeals } from "../services/deals"
 import { createPerson, listPeople } from "../services/people"
 import { listProducts } from "../services/products"
-import { createService, listServices, removeService } from "../services/serviceRecords"
+import { createService, listServices, removeService, updateService } from "../services/serviceRecords"
 import { formatCurrency, parseMoney } from "../utils/business"
 import CompanieDialog from "./AddCompanieDialog"
 import Button from "./Button"
@@ -24,7 +24,7 @@ import Select from "./Select"
 const statusOptions = ["Em andamento", "Agendado", "Concluido", "Pendente"]
 const typeOptions = ["Mecanica", "Regularizacao", "Transporte", "Vistoria", "Outro"]
 
-const initialForm = {
+const baseForm = {
   nome: "",
   tipo: typeOptions[0],
   status: statusOptions[0],
@@ -39,7 +39,14 @@ const initialForm = {
   dealId: "",
 }
 
-const ServiceDialog = ({
+const createFormState = (initialValues = {}) => ({
+  ...baseForm,
+  ...initialValues,
+  custo: initialValues.custo || (initialValues.custoValor != null ? String(initialValues.custoValor) : ""),
+  prazoDias: initialValues.prazoDias != null ? String(initialValues.prazoDias) : "",
+})
+
+export const ServiceDialog = ({
   isOpen,
   isSaving,
   onClose,
@@ -50,15 +57,19 @@ const ServiceDialog = ({
   deals,
   onQuickCreatePerson,
   onQuickCreateCompany,
+  initialValues = baseForm,
+  title = "Cadastrar servico",
+  subtitle = "Relacione custo, prestador e impacto com os modulos corretos.",
+  submitText = "Salvar servico",
 }) => {
-  const [form, setForm] = useState(initialForm)
+  const [form, setForm] = useState(() => createFormState(initialValues))
   const [isPersonDialogOpen, setPersonDialogOpen] = useState(false)
   const [isCompanyDialogOpen, setCompanyDialogOpen] = useState(false)
   const [isQuickSavingPerson, setQuickSavingPerson] = useState(false)
   const [isQuickSavingCompany, setQuickSavingCompany] = useState(false)
 
   const handleClose = () => {
-    setForm(initialForm)
+    setForm(createFormState(initialValues))
     setPersonDialogOpen(false)
     setCompanyDialogOpen(false)
     onClose?.()
@@ -80,6 +91,7 @@ const ServiceDialog = ({
 
     onSave?.({
       ...form,
+      prazoDias: Number(form.prazoDias || 0),
       custoValor: parseMoney(form.custo),
       prestador: providerCompany?.nome || providerPerson?.nome || "",
       providerType: providerCompany ? "Empresa" : providerPerson ? "Pessoa" : "",
@@ -116,13 +128,13 @@ const ServiceDialog = ({
   const footer = (
     <div className="mt-8 flex gap-3">
       <Button text="Cancelar" size="lg" onClick={handleClose} disabled={isSaving} />
-      <Button text={isSaving ? "Salvando..." : "Salvar servico"} size="lg" onClick={handleSubmit} disabled={isSaving} />
+      <Button text={isSaving ? "Salvando..." : submitText} size="lg" onClick={handleSubmit} disabled={isSaving} />
     </div>
   )
 
   return (
     <>
-      <Dialog isOpen={isOpen} onClose={isSaving ? undefined : handleClose} title="Cadastrar servico" subtitle="Relacione custo, prestador e impacto com os modulos corretos." footer={footer}>
+      <Dialog isOpen={isOpen} onClose={isSaving ? undefined : handleClose} title={title} subtitle={subtitle} footer={footer}>
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           <Input id="service-name" label="Servico" value={form.nome} onChange={handleChange("nome")} placeholder="Nome do servico" />
           <Select id="service-type" label="Tipo" value={form.tipo} onChange={handleChange("tipo")} options={typeOptions} />
@@ -160,22 +172,8 @@ const ServiceDialog = ({
         </div>
       </Dialog>
 
-      <PersonDialog
-        isOpen={isPersonDialogOpen}
-        isSaving={isQuickSavingPerson}
-        onClose={() => setPersonDialogOpen(false)}
-        onSave={handleQuickPersonSave}
-        companies={companies}
-      />
-
-      <CompanieDialog
-        isOpen={isCompanyDialogOpen}
-        isSaving={isQuickSavingCompany}
-        onClose={() => setCompanyDialogOpen(false)}
-        onSave={handleQuickCompanySave}
-        people={people}
-        onRequestNewPerson={() => setPersonDialogOpen(true)}
-      />
+      <PersonDialog isOpen={isPersonDialogOpen} isSaving={isQuickSavingPerson} onClose={() => setPersonDialogOpen(false)} onSave={handleQuickPersonSave} companies={companies} />
+      <CompanieDialog isOpen={isCompanyDialogOpen} isSaving={isQuickSavingCompany} onClose={() => setCompanyDialogOpen(false)} onSave={handleQuickCompanySave} people={people} onRequestNewPerson={() => setPersonDialogOpen(true)} />
     </>
   )
 }
@@ -189,6 +187,7 @@ const Services = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isDialogOpen, setDialogOpen] = useState(false)
+  const [selectedService, setSelectedService] = useState(null)
 
   const loadServices = async () => {
     setIsLoading(true)
@@ -239,10 +238,18 @@ const Services = () => {
     setIsSaving(true)
 
     try {
-      const saved = await createService(payload)
-      setServices((current) => [saved, ...current])
+      if (selectedService) {
+        const saved = await updateService(selectedService.id, payload)
+        setServices((current) => current.map((item) => (item.id === selectedService.id ? saved : item)))
+        toast.success("Servico atualizado com sucesso")
+      } else {
+        const saved = await createService(payload)
+        setServices((current) => [saved, ...current])
+        toast.success("Servico adicionado com sucesso")
+      }
+
       setDialogOpen(false)
-      toast.success("Servico adicionado com sucesso")
+      setSelectedService(null)
       await loadServices()
     } catch (error) {
       toast.error(error.message)
@@ -266,7 +273,13 @@ const Services = () => {
   }
 
   const handleView = (service) => {
-    toast(`${service.nome} | ${service.vinculo || "Sem vinculo"} | ${service.prestador || "Sem prestador"} | ${service.status}`)
+    setSelectedService(service)
+    setDialogOpen(true)
+  }
+
+  const openCreate = () => {
+    setSelectedService(null)
+    setDialogOpen(true)
   }
 
   const summaryCards = [
@@ -285,7 +298,7 @@ const Services = () => {
         </div>
         <div className="flex gap-2">
           <Button onClick={loadServices} text="Atualizar" size="md" className="bg-white text-slate-700 ring-1 ring-slate-200" icon={<ArrowPathIcon className="h-4 w-4" />} disabled={isLoading} />
-          <Button onClick={() => setDialogOpen(true)} text="Adicionar servico" icon={<PlusIcon className="h-4 w-4" />} />
+          <Button onClick={openCreate} text="Adicionar servico" icon={<PlusIcon className="h-4 w-4" />} />
         </div>
       </div>
       <div className="mt-6 grid gap-3 md:grid-cols-3">
@@ -315,9 +328,13 @@ const Services = () => {
         )}
       </div>
       <ServiceDialog
+        key={selectedService?.id || "new-service"}
         isOpen={isDialogOpen}
         isSaving={isSaving}
-        onClose={() => setDialogOpen(false)}
+        onClose={() => {
+          setDialogOpen(false)
+          setSelectedService(null)
+        }}
         onSave={handleSave}
         people={people}
         companies={companies}
@@ -325,6 +342,10 @@ const Services = () => {
         deals={deals}
         onQuickCreatePerson={handleQuickCreatePerson}
         onQuickCreateCompany={handleQuickCreateCompany}
+        initialValues={selectedService || undefined}
+        title={selectedService ? `Detalhes de ${selectedService.nome}` : "Cadastrar servico"}
+        subtitle={selectedService ? "Revise custo, prazo, prestador e vinculos deste servico." : "Relacione custo, prestador e impacto com os modulos corretos."}
+        submitText={selectedService ? "Salvar alteracoes" : "Salvar servico"}
       />
     </section>
   )

@@ -2,7 +2,7 @@ import { ArrowPathIcon, BuildingOffice2Icon, PlusIcon } from "@heroicons/react/2
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-import { createCompany, listCompanies, removeCompany } from "../services/companies"
+import { createCompany, listCompanies, removeCompany, updateCompany } from "../services/companies"
 import { listDeals } from "../services/deals"
 import { createPerson, listPeople } from "../services/people"
 import { listServices } from "../services/serviceRecords"
@@ -13,11 +13,8 @@ import PersonDialog from "./PersonDialog"
 
 const historyForCompany = (company, people, deals, services) => ({
   people: people.filter((person) => person.empresaId === company.id).length,
-  deals: deals.filter((deal) => deal.companyId === company.id || deal.empresa === company.nome)
-    .length,
-  services: services.filter(
-    (service) => service.companyId === company.id || service.providerCompanyId === company.id
-  ).length,
+  deals: deals.filter((deal) => deal.companyId === company.id || deal.empresa === company.nome).length,
+  services: services.filter((service) => service.companyId === company.id || service.providerCompanyId === company.id).length,
 })
 
 const Companies = () => {
@@ -30,6 +27,7 @@ const Companies = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isSavingPerson, setIsSavingPerson] = useState(false)
+  const [selectedCompany, setSelectedCompany] = useState(null)
 
   const loadCompanies = async () => {
     setIsLoading(true)
@@ -82,21 +80,27 @@ const Companies = () => {
   }
 
   const handleView = (company) => {
-    const history = historyForCompany(company, people, deals, services)
-
-    toast(
-      `${company.nome} | ${company.categoria} | Responsavel: ${company.responsavel} | Historico: ${history.people} pessoas, ${history.deals} negocios, ${history.services} servicos.`
-    )
+    setSelectedCompany(company)
+    setDialogOpen(true)
   }
 
   const handleSaveCompany = async (company) => {
     setIsSaving(true)
 
     try {
-      const savedCompany = await createCompany(company)
-      setCompanies((prevCompanies) => [savedCompany, ...prevCompanies])
-      toast.success("Empresa adicionada com sucesso")
+      if (selectedCompany) {
+        const savedCompany = await updateCompany(selectedCompany.id, company)
+        setCompanies((prevCompanies) => prevCompanies.map((item) => (item.id === selectedCompany.id ? savedCompany : item)))
+        toast.success("Empresa atualizada com sucesso")
+      } else {
+        const savedCompany = await createCompany(company)
+        setCompanies((prevCompanies) => [savedCompany, ...prevCompanies])
+        toast.success("Empresa adicionada com sucesso")
+      }
+
       setDialogOpen(false)
+      setSelectedCompany(null)
+      await loadCompanies()
     } catch (error) {
       toast.error(error.message)
     } finally {
@@ -117,6 +121,11 @@ const Companies = () => {
     } finally {
       setIsSavingPerson(false)
     }
+  }
+
+  const openCreate = () => {
+    setSelectedCompany(null)
+    setDialogOpen(true)
   }
 
   const categoryCount = (category) => companies.filter((company) => company.categoria === category).length
@@ -149,15 +158,8 @@ const Companies = () => {
         </div>
 
         <div className="flex gap-2">
-          <Button
-            onClick={loadCompanies}
-            text="Atualizar"
-            size="md"
-            className="bg-white text-slate-700 ring-1 ring-slate-200"
-            icon={<ArrowPathIcon className="h-4 w-4" />}
-            disabled={isLoading}
-          />
-          <Button onClick={() => setDialogOpen(true)} text="Adicionar empresa" icon={<PlusIcon className="h-4 w-4" />} />
+          <Button onClick={loadCompanies} text="Atualizar" size="md" className="bg-white text-slate-700 ring-1 ring-slate-200" icon={<ArrowPathIcon className="h-4 w-4" />} disabled={isLoading} />
+          <Button onClick={openCreate} text="Adicionar empresa" icon={<PlusIcon className="h-4 w-4" />} />
         </div>
       </div>
 
@@ -194,12 +196,20 @@ const Companies = () => {
       </div>
 
       <CompanieDialog
+        key={selectedCompany?.id || "new-company"}
         isOpen={isDialogOpen}
         isSaving={isSaving}
-        onClose={() => setDialogOpen(false)}
+        onClose={() => {
+          setDialogOpen(false)
+          setSelectedCompany(null)
+        }}
         onSave={handleSaveCompany}
         people={people}
         onRequestNewPerson={() => setPersonDialogOpen(true)}
+        initialValues={selectedCompany || undefined}
+        title={selectedCompany ? `Detalhes de ${selectedCompany.nome}` : "Cadastrar empresa"}
+        subtitle={selectedCompany ? "Revise o responsavel, categoria e dados de contato desta empresa." : "Empresa organiza o historico institucional e aponta para pessoas reais."}
+        submitText={selectedCompany ? "Salvar alteracoes" : "Salvar empresa"}
       />
 
       <PersonDialog

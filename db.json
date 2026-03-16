@@ -88,7 +88,7 @@
       "descricao": "fgfdg",
       "dataNegocio": "2026-03-16T15:00:00.000Z",
       "createdAt": "2026-03-16T15:00:00.000Z",
-      "prazoDias": 13,
+      "prazoDias": 12,
       "productId": "3243",
       "produtoNegociado": "Volvo FH 540",
       "descricaoProdutoManual": "",
@@ -105,8 +105,8 @@
       "lucroReal": "R$ 30",
       "margemReal": "7,9%",
       "prioridade": "Media",
-      "status": "Interesse",
-      "updatedAt": "2026-03-16T18:50:45.804Z"
+      "status": "Ganhou",
+      "updatedAt": "2026-03-16T20:29:38.489Z"
     }
   ],
   "products": [
@@ -119,7 +119,7 @@
       "margem": "10%",
       "recomendacao": "Produto pronto para venda",
       "currentDealId": "8d56",
-      "updatedAt": "2026-03-16T18:50:45.816Z"
+      "updatedAt": "2026-03-16T20:29:38.505Z"
     },
     {
       "id": "b066",

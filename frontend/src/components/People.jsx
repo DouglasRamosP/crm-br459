@@ -10,22 +10,15 @@ import { toast } from "sonner"
 
 import { listCompanies } from "../services/companies"
 import { listDeals } from "../services/deals"
-import { createPerson, listPeople, removePerson } from "../services/people"
+import { createPerson, listPeople, removePerson, updatePerson } from "../services/people"
 import { listServices } from "../services/serviceRecords"
 import Button from "./Button"
 import PersonDialog from "./PersonDialog"
 
 const historyForPerson = (person, deals, services, companies) => {
-  const relatedDeals = deals.filter(
-    (deal) => deal.personId === person.id || deal.contato === person.nome
-  )
-  const relatedServices = services.filter(
-    (service) =>
-      service.personId === person.id || service.providerPersonId === person.id
-  )
-  const responsibleCompanies = companies.filter(
-    (company) => company.responsavelId === person.id
-  )
+  const relatedDeals = deals.filter((deal) => deal.personId === person.id || deal.contato === person.nome)
+  const relatedServices = services.filter((service) => service.personId === person.id || service.providerPersonId === person.id)
+  const responsibleCompanies = companies.filter((company) => company.responsavelId === person.id)
 
   return {
     deals: relatedDeals.length,
@@ -42,6 +35,7 @@ const People = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isDialogOpen, setDialogOpen] = useState(false)
+  const [selectedPerson, setSelectedPerson] = useState(null)
 
   const loadPeople = async () => {
     setIsLoading(true)
@@ -97,10 +91,19 @@ const People = () => {
     setIsSaving(true)
 
     try {
-      const saved = await createPerson(payload)
-      setPeople((current) => [saved, ...current])
+      if (selectedPerson) {
+        const saved = await updatePerson(selectedPerson.id, payload)
+        setPeople((current) => current.map((item) => (item.id === selectedPerson.id ? saved : item)))
+        toast.success("Pessoa atualizada com sucesso")
+      } else {
+        const saved = await createPerson(payload)
+        setPeople((current) => [saved, ...current])
+        toast.success("Pessoa adicionada com sucesso")
+      }
+
       setDialogOpen(false)
-      toast.success("Pessoa adicionada com sucesso")
+      setSelectedPerson(null)
+      await loadPeople()
     } catch (error) {
       toast.error(error.message)
     } finally {
@@ -109,11 +112,13 @@ const People = () => {
   }
 
   const handleView = (person) => {
-    const history = historyForPerson(person, deals, services, companies)
+    setSelectedPerson(person)
+    setDialogOpen(true)
+  }
 
-    toast(
-      `${person.nome} | ${person.papeis.join(", ")} | Historico: ${history.deals} negocios, ${history.services} servicos, ${history.companies} empresas.`
-    )
+  const openCreate = () => {
+    setSelectedPerson(null)
+    setDialogOpen(true)
   }
 
   const summaryCards = [
@@ -129,11 +134,7 @@ const People = () => {
     },
     {
       label: "Prestadores e fornecedores",
-      value: people.filter(
-        (person) =>
-          person.papeis.includes("Prestador de servico") ||
-          person.papeis.includes("Fornecedor")
-      ).length,
+      value: people.filter((person) => person.papeis.includes("Prestador de servico") || person.papeis.includes("Fornecedor")).length,
       detail: "Rede operacional e de sourcing conectada ao negocio.",
     },
   ]
@@ -147,15 +148,8 @@ const People = () => {
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">A pessoa pode ser cliente, fornecedora e prestadora ao mesmo tempo, sem duplicar cadastro.</p>
         </div>
         <div className="flex gap-2">
-          <Button
-            onClick={loadPeople}
-            text="Atualizar"
-            size="md"
-            className="bg-white text-slate-700 ring-1 ring-slate-200"
-            icon={<ArrowPathIcon className="h-4 w-4" />}
-            disabled={isLoading}
-          />
-          <Button onClick={() => setDialogOpen(true)} text="Adicionar pessoa" icon={<PlusIcon className="h-4 w-4" />} />
+          <Button onClick={loadPeople} text="Atualizar" size="md" className="bg-white text-slate-700 ring-1 ring-slate-200" icon={<ArrowPathIcon className="h-4 w-4" />} disabled={isLoading} />
+          <Button onClick={openCreate} text="Adicionar pessoa" icon={<PlusIcon className="h-4 w-4" />} />
         </div>
       </div>
 
@@ -232,11 +226,19 @@ const People = () => {
       </div>
 
       <PersonDialog
+        key={selectedPerson?.id || "new-person"}
         isOpen={isDialogOpen}
         isSaving={isSaving}
-        onClose={() => setDialogOpen(false)}
+        onClose={() => {
+          setDialogOpen(false)
+          setSelectedPerson(null)
+        }}
         onSave={handleSave}
         companies={companies}
+        initialValues={selectedPerson || undefined}
+        title={selectedPerson ? `Detalhes de ${selectedPerson.nome}` : "Cadastrar pessoa"}
+        subtitle={selectedPerson ? "Revise o cadastro, historico e papeis desta pessoa." : "Pessoa tem identidade unica e pode acumular multiplos papeis."}
+        submitText={selectedPerson ? "Salvar alteracoes" : "Salvar pessoa"}
       />
     </section>
   )

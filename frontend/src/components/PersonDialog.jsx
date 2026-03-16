@@ -7,7 +7,7 @@ import Select from "./Select"
 
 const roleOptions = ["Cliente", "Prestador de servico", "Fornecedor"]
 
-const initialForm = {
+const baseForm = {
   nome: "",
   empresaId: "",
   email: "",
@@ -17,6 +17,13 @@ const initialForm = {
   papeis: ["Cliente"],
 }
 
+const createFormState = (initialValues = {}) => ({
+  ...baseForm,
+  ...initialValues,
+  empresaId: initialValues.empresaId || "",
+  papeis: initialValues.papeis?.length ? initialValues.papeis : baseForm.papeis,
+})
+
 const PersonDialog = ({
   isOpen,
   isSaving = false,
@@ -24,11 +31,15 @@ const PersonDialog = ({
   onSave,
   companies = [],
   onRequestNewCompany,
+  initialValues = baseForm,
+  title = "Cadastrar pessoa",
+  subtitle = "Pessoa tem identidade unica e pode acumular multiplos papeis.",
+  submitText = "Salvar pessoa",
 }) => {
-  const [form, setForm] = useState(initialForm)
+  const [form, setForm] = useState(() => createFormState(initialValues))
 
   const handleClose = () => {
-    setForm(initialForm)
+    setForm(createFormState(initialValues))
     onClose?.()
   }
 
@@ -57,19 +68,14 @@ const PersonDialog = ({
 
     onSave?.({
       ...form,
-      empresa: company?.nome || "",
+      empresa: company?.nome || initialValues.empresa || "",
     })
   }
 
   const footer = (
     <div className="mt-8 flex flex-wrap gap-3">
       <Button text="Cancelar" size="lg" onClick={handleClose} disabled={isSaving} />
-      <Button
-        text={isSaving ? "Salvando..." : "Salvar pessoa"}
-        size="lg"
-        onClick={handleSubmit}
-        disabled={isSaving}
-      />
+      <Button text={isSaving ? "Salvando..." : submitText} size="lg" onClick={handleSubmit} disabled={isSaving} />
     </div>
   )
 
@@ -77,18 +83,12 @@ const PersonDialog = ({
     <Dialog
       isOpen={isOpen}
       onClose={isSaving ? undefined : handleClose}
-      title="Cadastrar pessoa"
-      subtitle="Pessoa tem identidade unica e pode acumular multiplos papeis."
+      title={title}
+      subtitle={subtitle}
       footer={footer}
     >
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-        <Input
-          id="person-name"
-          label="Nome"
-          value={form.nome}
-          onChange={handleChange("nome")}
-          placeholder="Nome completo"
-        />
+        <Input id="person-name" label="Nome" value={form.nome} onChange={handleChange("nome")} placeholder="Nome completo" />
         <div>
           <Select
             id="person-company"
@@ -104,43 +104,15 @@ const PersonDialog = ({
             ]}
           />
           {onRequestNewCompany ? (
-            <button
-              type="button"
-              onClick={onRequestNewCompany}
-              className="mt-2 text-sm font-medium text-amber-700 transition hover:text-amber-800"
-            >
+            <button type="button" onClick={onRequestNewCompany} className="mt-2 text-sm font-medium text-amber-700 transition hover:text-amber-800">
               Empresa nao encontrada? Cadastrar agora.
             </button>
           ) : null}
         </div>
-        <Input
-          id="person-email"
-          label="E-mail"
-          value={form.email}
-          onChange={handleChange("email")}
-          placeholder="email@empresa.com.br"
-        />
-        <Input
-          id="person-phone"
-          label="Contato"
-          value={form.telefone}
-          onChange={handleChange("telefone")}
-          placeholder="(00) 00000-0000"
-        />
-        <Input
-          id="person-city"
-          label="Cidade / regiao"
-          value={form.cidade}
-          onChange={handleChange("cidade")}
-          placeholder="Cidade/UF"
-        />
-        <Input
-          id="person-notes"
-          label="Observacoes"
-          value={form.observacoes}
-          onChange={handleChange("observacoes")}
-          placeholder="Preferencias, perfil de compra ou detalhe relevante"
-        />
+        <Input id="person-email" label="E-mail" value={form.email} onChange={handleChange("email")} placeholder="email@empresa.com.br" />
+        <Input id="person-phone" label="Contato" value={form.telefone} onChange={handleChange("telefone")} placeholder="(00) 00000-0000" />
+        <Input id="person-city" label="Cidade / regiao" value={form.cidade} onChange={handleChange("cidade")} placeholder="Cidade/UF" />
+        <Input id="person-notes" label="Observacoes" value={form.observacoes} onChange={handleChange("observacoes")} placeholder="Preferencias, perfil de compra ou detalhe relevante" />
       </div>
 
       <div className="mt-4">
@@ -155,9 +127,7 @@ const PersonDialog = ({
                 type="button"
                 onClick={() => toggleRole(role)}
                 className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                  active
-                    ? "bg-slate-900 text-white"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  active ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                 }`}
               >
                 {role}

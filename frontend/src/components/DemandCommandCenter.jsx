@@ -782,7 +782,7 @@ const ServicesView = () => (
         "Regularizacao, transporte e vistoria entram no calculo financeiro da venda.",
         "Servicos podem existir antes de o produto estar oficialmente em estoque.",
         "O dashboard precisa mostrar quando servicos estao consumindo a margem acima do esperado.",
-      ]} icon={WrenchScrewdriverIcon} accent="rose" />
+      ]} icon={<WrenchScrewdriverIcon className="h-5 w-5" />} accent="rose" />
     </SectionCard>
   </div>
 )
@@ -790,7 +790,7 @@ const ServicesView = () => (
 const IntelligenceView = () => (
   <div className="space-y-6">
     <SectionCard eyebrow="Camada inteligente" title="Alertas e recomendacoes com contexto de negocio" description="A IA nao deve apenas consultar preco de mercado; ela precisa orientar compra, venda, follow-up e revisao de margem.">
-      <InsightList items={aiInsights} icon={SparklesIcon} accent="amber" />
+      <InsightList items={aiInsights} icon={<SparklesIcon className="h-5 w-5" />} accent="amber" />
     </SectionCard>
 
     <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
@@ -800,7 +800,7 @@ const IntelligenceView = () => (
           "Demanda recorrente sem cobertura no estoque atual.",
           "Produto encontrado aderente a uma demanda critica.",
           "Queda de lucro real causada por servicos ou descontos fora do padrao.",
-        ]} icon={ExclamationTriangleIcon} accent="rose" />
+        ]} icon={<ExclamationTriangleIcon className="h-5 w-5" />} accent="rose" />
       </SectionCard>
       <SectionCard eyebrow="Decisao" title="Onde a inteligencia deve ajudar o gestor" description="O painel precisa sugerir acao, nao apenas mostrar numero.">
         <InsightList items={[
@@ -808,7 +808,7 @@ const IntelligenceView = () => (
           "Recomendar revisao de preco em estoque parado acima do limite desejado.",
           "Apontar fornecedores acima ou abaixo do benchmark recente.",
           "Relacionar perda de margem com servico, desconto, frete ou regularizacao.",
-        ]} icon={BanknotesIcon} accent="emerald" />
+        ]} icon={<BanknotesIcon className="h-5 w-5" />} accent="emerald" />
       </SectionCard>
     </div>
   </div>

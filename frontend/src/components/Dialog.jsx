@@ -4,15 +4,24 @@ import { useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
 import { CSSTransition } from "react-transition-group"
 
-const Dialog = ({ isOpen, onClose, title, subtitle, footer, children }) => {
+const Dialog = ({
+  isOpen,
+  onClose,
+  title,
+  subtitle,
+  footer,
+  children,
+  panelClassName = "max-h-[85vh] w-full max-w-4xl overflow-y-auto rounded-[28px] bg-white p-6 shadow-2xl md:p-8",
+}) => {
   const nodeRef = useRef()
 
   useEffect(() => {
     if (!isOpen) return
 
     const handlekeyDown = (e) => {
-      if (e.key === "Escape") onClose()
+      if (e.key === "Escape") onClose?.()
     }
+
     window.addEventListener("keydown", handlekeyDown)
     return () => window.removeEventListener("keydown", handlekeyDown)
   }, [isOpen, onClose])
@@ -30,28 +39,21 @@ const Dialog = ({ isOpen, onClose, title, subtitle, footer, children }) => {
     >
       <div
         ref={nodeRef}
-        className="fixed px-5 inset-0 flex items-center justify-center bg-black/50"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-5 py-8"
         onMouseDown={() => onClose?.()}
         role="dialog"
         aria-modal="true"
         aria-label={title}
       >
-        <div
-          className="rounded-lg bg-white p-6"
-          onMouseDown={(e) => e.stopPropagation()}
-        >
+        <div className={panelClassName} onMouseDown={(e) => e.stopPropagation()}>
           {(title || subtitle) && (
             <div className="mb-6">
-              {title && (
-                <h2 className="text-xl font-semibold text-black">{title}</h2>
-              )}
-              {subtitle && (
-                <p className="mt-1 text-sm text-yellow-600">{subtitle}</p>
-              )}
+              {title ? <h2 className="text-xl font-semibold text-slate-950">{title}</h2> : null}
+              {subtitle ? <p className="mt-1 text-sm text-amber-700">{subtitle}</p> : null}
             </div>
           )}
           {children}
-          {footer && footer}
+          {footer}
         </div>
       </div>
     </CSSTransition>,

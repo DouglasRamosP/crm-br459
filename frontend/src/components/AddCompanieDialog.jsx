@@ -1,94 +1,143 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import Button from "./Button"
 import Dialog from "./Dialog"
 import Input from "./Input"
+import Select from "./Select"
+
+const categoryOptions = ["Cliente", "Prestador de servico", "Fornecedor"]
 
 const initialForm = {
   nome: "",
-  categoria: "",
-  responsavel: "",
+  categoria: categoryOptions[0],
+  responsavelId: "",
+  cidade: "",
   email: "",
   telefone: "",
 }
 
-const CompanieDialog = ({ isOpen, onClose, onSave }) => {
+const CompanieDialog = ({
+  isOpen,
+  isSaving = false,
+  onClose,
+  onSave,
+  people = [],
+  onRequestNewPerson,
+}) => {
   const [form, setForm] = useState(initialForm)
 
-  const handleChange = (field) => (e) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }))
+  useEffect(() => {
+    if (!isOpen) {
+      setForm(initialForm)
+    }
+  }, [isOpen])
+
+  const handleChange = (field) => (event) => {
+    setForm((current) => ({ ...current, [field]: event.target.value }))
   }
 
-  const handleClose = () => {
-    setForm(initialForm)
-    onClose?.()
+  const handleResponsibleChange = (event) => {
+    const responsavelId = event.target.value
+    const person = people.find((item) => item.id === responsavelId)
+
+    setForm((current) => ({
+      ...current,
+      responsavelId,
+      email: person?.email || current.email,
+      telefone: person?.telefone || current.telefone,
+    }))
   }
 
   const handleSubmit = () => {
-    if (!form.nome || !form.categoria || !form.responsavel) return
-    onSave?.(form)
-    setForm(initialForm)
+    if (isSaving || !form.nome || !form.categoria || !form.responsavelId) return
+
+    const person = people.find((item) => item.id === form.responsavelId)
+
+    onSave?.({
+      ...form,
+      responsavel: person?.nome || "",
+      email: form.email || person?.email || "",
+      telefone: form.telefone || person?.telefone || "",
+    })
   }
 
   const footer = (
-    <div className="mt-10 flex gap-3">
-      <Button onClick={handleClose} size="lg" text="Cancelar" />
-      <Button onClick={handleSubmit} size="lg" text="Salvar" />
+    <div className="mt-8 flex flex-wrap gap-3">
+      <Button onClick={onClose} size="lg" text="Cancelar" disabled={isSaving} />
+      <Button
+        onClick={handleSubmit}
+        size="lg"
+        text={isSaving ? "Salvando..." : "Salvar empresa"}
+        disabled={isSaving}
+      />
     </div>
   )
 
   return (
     <Dialog
       isOpen={isOpen}
-      onClose={handleClose}
-      title="Cadastre uma nova empresa"
-      subtitle="Insira as informações abaixo"
+      onClose={isSaving ? undefined : onClose}
+      title="Cadastrar empresa"
+      subtitle="Empresa organiza o historico institucional e aponta para pessoas reais."
       footer={footer}
     >
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <Input
+          id="company-name"
+          label="Nome da empresa"
+          placeholder="Nome da empresa"
+          value={form.nome}
+          onChange={handleChange("nome")}
+        />
+        <Select
+          id="company-category"
+          label="Categoria"
+          value={form.categoria}
+          onChange={handleChange("categoria")}
+          options={categoryOptions}
+        />
         <div>
-          <h2 className="mt-1 mb-4 text-gray-400">Informações da empresa</h2>
-          <Input
-            id="companie"
-            label="Empresa"
-            placeholder="Nome da empresa"
-            value={form.nome}
-            onChange={handleChange("nome")}
+          <Select
+            id="company-responsible"
+            label="Responsavel"
+            value={form.responsavelId}
+            onChange={handleResponsibleChange}
+            options={[
+              { label: "Selecione uma pessoa existente", value: "" },
+              ...people.map((person) => ({ label: person.nome, value: person.id })),
+            ]}
           />
-          <Input
-            id="category"
-            label="Categoria"
-            placeholder="Informe a categoria"
-            value={form.categoria}
-            onChange={handleChange("categoria")}
-          />
+          {onRequestNewPerson ? (
+            <button
+              type="button"
+              onClick={onRequestNewPerson}
+              className="mt-2 text-sm font-medium text-amber-700 transition hover:text-amber-800"
+            >
+              Responsavel nao encontrado? Cadastrar pessoa agora.
+            </button>
+          ) : null}
         </div>
-        <div>
-          <h2 className="mt-1 mb-4 text-gray-400">
-            Informações do responsável pela empresa
-          </h2>
-          <Input
-            id="responsible"
-            label="Responsável"
-            placeholder="Nome do responsável"
-            value={form.responsavel}
-            onChange={handleChange("responsavel")}
-          />
-          <Input
-            id="email"
-            label="E-mail"
-            placeholder="E-mail do responsável"
-            value={form.email}
-            onChange={handleChange("email")}
-          />
-          <Input
-            id="phone"
-            label="Telefone"
-            placeholder="telefone do responsável"
-            value={form.telefone}
-            onChange={handleChange("telefone")}
-          />
-        </div>
+        <Input
+          id="company-city"
+          label="Cidade / regiao"
+          placeholder="Cidade/UF"
+          value={form.cidade}
+          onChange={handleChange("cidade")}
+        />
+        <Input
+          id="company-email"
+          label="E-mail do responsavel"
+          placeholder="email@empresa.com.br"
+          value={form.email}
+          onChange={handleChange("email")}
+        />
+        <Input
+          id="company-phone"
+          label="Contato do responsavel"
+          placeholder="(00) 00000-0000"
+          value={form.telefone}
+          onChange={handleChange("telefone")}
+        />
       </div>
     </Dialog>
   )

@@ -12,12 +12,20 @@ import {
 } from "@heroicons/react/24/solid"
 import { useEffect, useEffectEvent, useState } from "react"
 
-import { aiInsights, businessPrinciples, filters, peopleInsights } from "../constants/businessData"
+import { aiInsights, businessPrinciples, peopleInsights } from "../constants/businessData"
 import { listCompanies } from "../services/companies"
 import { listDeals } from "../services/deals"
 import { listPeople } from "../services/people"
 import { listProducts } from "../services/products"
 import { listServices } from "../services/serviceRecords"
+import {
+  buildSalesTimeline,
+  dashboardPeriodOptions,
+  filterItemsByRange,
+  formatDashboardRangeLabel,
+  formatDateInput,
+  resolveDashboardRange,
+} from "../utils/dashboardPeriods"
 import Button from "./Button"
 import Companies from "./Companies.jsx"
 import Deals from "./Deals.jsx"
@@ -204,68 +212,6 @@ const buildFunnelStages = (deals) => {
   })
 }
 
-const getLastThreeMonths = () => {
-  const formatter = new Intl.DateTimeFormat("pt-BR", { month: "short" })
-
-  return Array.from({ length: 3 }, (_, index) => {
-    const date = new Date()
-    date.setMonth(date.getMonth() - (2 - index))
-    date.setDate(1)
-
-    return {
-      key: `${date.getFullYear()}-${date.getMonth()}`,
-      label: formatter.format(date),
-      reference: date,
-      wins: 0,
-      losses: 0,
-      negotiatedProducts: 0,
-      profit: 0,
-      deals: [],
-    }
-  })
-}
-
-const buildQuarterSales = (deals) => {
-  const months = getLastThreeMonths()
-  const monthMap = new Map(months.map((month) => [month.key, month]))
-
-  deals
-    .filter((deal) => deal.tipoDemanda === "Compra")
-    .forEach((deal) => {
-      const date = getResourceDate(deal)
-      const key = `${date.getFullYear()}-${date.getMonth()}`
-      const month = monthMap.get(key)
-
-      if (!month) return
-
-      month.deals.push(deal)
-
-      if (deal.status === "Ganhou") {
-        month.wins += 1
-        month.profit += parseMoney(deal.lucroValor ?? deal.lucroReal)
-      }
-
-      if (deal.status === "Perdeu") {
-        month.losses += 1
-      }
-
-      if (deal.produtoNegociado) {
-        month.negotiatedProducts += 1
-      }
-    })
-
-  const maxValue = Math.max(
-    1,
-    ...months.flatMap((month) => [month.wins, month.losses, month.negotiatedProducts])
-  )
-
-  return months.map((month) => ({
-    ...month,
-    winHeight: Math.max(16, (month.wins / maxValue) * 100),
-    lossHeight: Math.max(16, (month.losses / maxValue) * 100),
-    productHeight: Math.max(16, (month.negotiatedProducts / maxValue) * 100),
-  }))
-}
 const buildSpotlightKpis = ({ companies, deals, products, people, services }) => {
   const stockCapital = products.reduce(
     (sum, product) => sum + getProductTotalCost(product, services),
@@ -526,7 +472,7 @@ const WonDealsTable = ({ deals }) => {
   if (!deals.length) {
     return (
       <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center text-sm text-slate-500">
-        Ainda nao existem vendas ganhas nos ultimos 3 meses.
+        Ainda nao existem vendas ganhas no periodo selecionado.
       </div>
     )
   }
@@ -582,6 +528,7 @@ const InsightList = ({ items, icon: Icon, accent = "amber" }) => {
 }
 
 const DashboardView = () => {
+  const today = new Date()
   const [snapshot, setSnapshot] = useState({
     companies: [],
     deals: [],
@@ -591,6 +538,11 @@ const DashboardView = () => {
   })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
+  const [period, setPeriod] = useState("current_month")
+  const [customStart, setCustomStart] = useState(
+    formatDateInput(new Date(today.getFullYear(), today.getMonth(), 1))
+  )
+  const [customEnd, setCustomEnd] = useState(formatDateInput(today))
 
   const loadSnapshot = useEffectEvent(async () => {
     setIsLoading(true)
@@ -617,10 +569,30 @@ const DashboardView = () => {
     loadSnapshot()
   }, [])
 
-  const kpis = buildSpotlightKpis(snapshot)
-  const funnel = buildFunnelStages(snapshot.deals)
-  const alerts = buildStrategicAlerts(snapshot)
-  const quarter = buildQuarterSales(snapshot.deals)
+  const periodRange = resolveDashboardRange({ period, customStart, customEnd }, today)
+  const filteredSnapshot = {
+    companies: filterItemsByRange(snapshot.companies, getResourceDate, periodRange),
+    deals: filterItemsByRange(snapshot.deals, getResourceDate, periodRange),
+    products: filterItemsByRange(
+      snapshot.products,
+      (product) => getResourceDate({ createdAt: product.dataEntrada ?? product.createdAt }),
+      periodRange
+    ),
+    people: filterItemsByRange(snapshot.people, getResourceDate, periodRange),
+    services: filterItemsByRange(snapshot.services, getResourceDate, periodRange),
+  }
+  const commercialDeals = filteredSnapshot.deals.filter(
+    (deal) => deal.tipoDemanda === "Compra"
+  )
+  const kpis = buildSpotlightKpis(filteredSnapshot)
+  const funnel = buildFunnelStages(commercialDeals)
+  const alerts = buildStrategicAlerts(filteredSnapshot)
+  const quarter = buildSalesTimeline({
+    deals: commercialDeals,
+    range: periodRange,
+    getDate: getResourceDate,
+    getProfit: (deal) => parseMoney(deal.lucroValor ?? deal.lucroReal),
+  })
   const wonDeals = quarter.flatMap((month) =>
     month.deals.filter((deal) => deal.status === "Ganhou")
   )
@@ -631,17 +603,66 @@ const DashboardView = () => {
     0
   )
   const totalProfit = quarter.reduce((sum, month) => sum + month.profit, 0)
+  const rangeLabel = formatDashboardRangeLabel(periodRange)
 
   return (
     <div className="space-y-6">
       <SectionCard eyebrow="Regra ativa" title="O negocio nasce da demanda e o estoque responde" description="A tela inicial agora consome as colecoes reais do json-server para refletir o estado atual da operacao.">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
-            {filters.map((filter) => (
-              <div key={filter} className="rounded-full border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">{filter}</div>
-            ))}
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-2">
+              {dashboardPeriodOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setPeriod(option.value)}
+                  className={`rounded-full px-4 py-3 text-sm font-medium transition ${
+                    period === option.value
+                      ? "bg-slate-900 text-white"
+                      : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <Button onClick={loadSnapshot} text="Atualizar painel" icon={<ArrowPathIcon className="h-4 w-4" />} className="bg-white text-slate-700 ring-1 ring-slate-200" disabled={isLoading} />
           </div>
-          <Button onClick={loadSnapshot} text="Atualizar painel" icon={<ArrowPathIcon className="h-4 w-4" />} className="bg-white text-slate-700 ring-1 ring-slate-200" disabled={isLoading} />
+
+          {period === "custom" ? (
+            <div className="grid gap-3 md:grid-cols-2 xl:max-w-xl">
+              <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+                Data inicial
+                <input
+                  type="date"
+                  value={customStart}
+                  onChange={(event) => setCustomStart(event.target.value)}
+                  className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none ring-0"
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+                Data final
+                <input
+                  type="date"
+                  value={customEnd}
+                  onChange={(event) => setCustomEnd(event.target.value)}
+                  className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none ring-0"
+                />
+              </label>
+            </div>
+          ) : null}
+
+          <div className="flex flex-wrap gap-3">
+            <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
+              Periodo aplicado: {rangeLabel}
+            </div>
+            <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
+              Negocios no recorte: {filteredSnapshot.deals.length}
+            </div>
+            <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
+              Produtos no recorte: {filteredSnapshot.products.length}
+            </div>
+          </div>
         </div>
       </SectionCard>
 
@@ -655,16 +676,16 @@ const DashboardView = () => {
         {kpis.map((item) => <KpiCard key={item.title} item={item} />)}
       </div>
 
-      <SectionCard eyebrow="Evolucao" title="Vendas realizadas nos ultimos 3 meses" description="Painel comercial baseado nas demandas de compra cadastradas, com lucro por venda, produtos negociados e vendas perdidas por mes.">
+      <SectionCard eyebrow="Evolucao" title="Vendas realizadas no periodo selecionado" description="Painel comercial baseado nas demandas de compra do recorte escolhido, com lucro por venda, produtos negociados e vendas perdidas por mes.">
         {isLoading ? (
           <div className="py-16 text-center text-sm text-slate-500">Carregando desempenho comercial...</div>
         ) : (
           <div className="space-y-6">
             <div className="grid gap-4 xl:grid-cols-5">
-              <QuarterlySummaryCard label="Vendas realizadas" value={String(totalWins)} detail="Demandas de compra convertidas em venda entre janeiro, fevereiro e marco." tone="emerald" />
-              <QuarterlySummaryCard label="Lucro acumulado" value={formatCurrency(totalProfit)} detail="Soma do lucro real registrado nas vendas ganhas do trimestre." tone="amber" />
+              <QuarterlySummaryCard label="Vendas realizadas" value={String(totalWins)} detail={`Demandas de compra convertidas em venda dentro de ${rangeLabel}.`} tone="emerald" />
+              <QuarterlySummaryCard label="Lucro acumulado" value={formatCurrency(totalProfit)} detail="Soma do lucro real registrado nas vendas ganhas do periodo filtrado." tone="amber" />
               <QuarterlySummaryCard label="Produtos negociados" value={String(totalProducts)} detail="Demandas comerciais em que o caminhao ficou claramente definido." tone="sky" />
-              <QuarterlySummaryCard label="Vendas perdidas" value={String(totalLosses)} detail="Demandas comerciais encerradas como Perdeu no mesmo periodo." tone="rose" />
+              <QuarterlySummaryCard label="Vendas perdidas" value={String(totalLosses)} detail="Demandas comerciais encerradas como Perdeu dentro do periodo filtrado." tone="rose" />
             </div>
 
             <SalesPerformanceChart months={quarter} />
@@ -684,8 +705,8 @@ const DashboardView = () => {
       </SectionCard>
 
       <div className="grid gap-6 xl:grid-cols-[1.35fr_1fr]">
-        <SectionCard eyebrow="Oportunidades ativas" title="Negocios comerciais mais recentes" description="Leitura direta das demandas de compra mais recentes cadastradas nas colecoes reais.">
-          {isLoading ? <div className="py-16 text-center text-sm text-slate-500">Carregando negocios...</div> : <WonDealsTable deals={snapshot.deals.filter((deal) => deal.tipoDemanda === "Compra").slice().sort((a, b) => getResourceDate(b) - getResourceDate(a)).slice(0, 5)} />}
+        <SectionCard eyebrow="Oportunidades ativas" title="Negocios comerciais mais recentes" description="Leitura direta das demandas de compra mais recentes dentro do periodo selecionado.">
+          {isLoading ? <div className="py-16 text-center text-sm text-slate-500">Carregando negocios...</div> : <WonDealsTable deals={commercialDeals.slice().sort((a, b) => getResourceDate(b) - getResourceDate(a)).slice(0, 5)} />}
         </SectionCard>
         <SectionCard eyebrow="Alertas proativos" title="O que exige acao agora" description="Alertas gerados a partir de demandas sem produto, estoque parado, servicos ainda abertos e oportunidades de compra.">
           {isLoading ? <div className="py-16 text-center text-sm text-slate-500">Carregando alertas...</div> : <AlertStack alerts={alerts} />}

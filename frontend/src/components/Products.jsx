@@ -22,6 +22,7 @@ import {
   getProductBaseCost,
   getProductEstimatedSale,
   getProductLinkedServices,
+  getProductStatusTone,
   parsePercent,
   toCurrencyInputValue,
 } from "../utils/business"
@@ -31,7 +32,14 @@ import Input from "./Input"
 import Select from "./Select"
 import { ServiceDialog } from "./ServicesModule"
 
-const statusOptions = ["Disponivel", "Em negociacao", "Reservado", "Vendido"]
+const statusOptions = ["Disponível", "Negociando", "Reservado", "Vendido"]
+const statusToneClasses = {
+  amber: "bg-amber-100 text-amber-700",
+  emerald: "bg-emerald-100 text-emerald-700",
+  sky: "bg-sky-100 text-sky-700",
+  rose: "bg-rose-100 text-rose-700",
+  slate: "bg-slate-100 text-slate-700",
+}
 
 const getToday = () => new Date().toISOString().slice(0, 10)
 
@@ -86,7 +94,7 @@ const ProductDialog = ({
   const selectedServices = services.filter((service) => form.serviceIds.includes(service.id))
   const acquisition = getProductBaseCost({ valorAquisicao: form.valorAquisicao, serviceIds: form.serviceIds }, selectedServices)
   const estimatedSale = acquisition * (1 + parsePercent(form.margemEsperada) / 100)
-  const resolvedStatus = form.linkedDealId ? "Em negociacao" : form.status
+  const resolvedStatus = form.linkedDealId ? "Negociando" : form.status
   const recommendation =
     form.recomendacao ||
     buildProductRecommendation(
@@ -406,7 +414,7 @@ const Products = () => {
 
   const summaryCards = [
     { label: "Produtos em estoque", value: products.length, detail: "Ativos acompanhados com custo total e potencial de venda." },
-    { label: "Em negociacao", value: products.filter((product) => product.status === "Em negociacao").length, detail: "Itens ja puxados para algum negocio." },
+    { label: "Negociando", value: products.filter((product) => product.status === "Negociando").length, detail: "Itens ja puxados para algum negocio." },
     { label: "Parados > 45 dias", value: products.filter((product) => getDaysInStock(product) > 45).length, detail: `Margem media esperada: ${averageMargin}` },
   ]
 
@@ -442,10 +450,12 @@ const Products = () => {
                 const estimatedSale = getProductEstimatedSale(product, services)
                 const recommendation = product.recomendacao || buildProductRecommendation(product, services)
 
+                const statusTone = statusToneClasses[getProductStatusTone(product.status)] || statusToneClasses.slate
+
                 return (
                   <tr key={product.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
                     <td className="px-4 py-4"><p className="font-medium text-slate-800">{product.modelo}</p><p className="mt-1 text-slate-500">{recommendation}</p></td>
-                    <td className="px-4 py-4"><span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">{product.status}</span></td>
+                    <td className="px-4 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusTone}`}>{product.status}</span></td>
                     <td className="px-4 py-4 text-slate-700">{getDaysInStock(product)} dias</td>
                     <td className="px-4 py-4 text-slate-700">{formatCurrency(totalCost)} custo total | {formatCurrency(estimatedSale)} venda estimada | {linkedServices.length} servicos</td>
                     <td className="px-4 py-4"><div className="flex items-center gap-3"><button type="button" className="rounded-full p-2 text-amber-600 transition hover:bg-amber-50" onClick={() => handleView(product)}><ArrowTopRightOnSquareIcon className="h-4 w-4" /></button><button type="button" className="rounded-full p-2 text-rose-500 transition hover:bg-rose-50" onClick={() => handleDelete(product)}><TrashIcon className="h-4 w-4" /></button></div></td>

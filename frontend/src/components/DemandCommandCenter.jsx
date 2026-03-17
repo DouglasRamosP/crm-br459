@@ -143,7 +143,7 @@ const funnelOrder = [
   "Interesse",
   "Busca no mercado",
   "Proposta",
-  "Negociacao",
+  "Negociação",
   "Ganhou",
   "Perdeu",
 ]
@@ -252,7 +252,7 @@ const buildSpotlightKpis = ({ companies, deals, products, people, services }) =>
     {
       title: "Capital em estoque",
       value: formatCurrency(stockCapital),
-      change: `${products.filter((product) => product.status === "Disponivel").length} disponiveis`,
+      change: `${products.filter((product) => product.status === "Disponível").length} disponíveis`,
       tone: "emerald",
       description: "Soma do custo real dos produtos, incluindo servicos atrelados.",
     },

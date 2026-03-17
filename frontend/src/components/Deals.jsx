@@ -31,7 +31,7 @@ import Select from "./Select"
 
 const demandOptions = ["Compra", "Venda"]
 const priorityOptions = ["Baixa", "Media", "Alta", "Critica"]
-const statusOptions = ["Interesse", "Busca no mercado", "Proposta", "Negociacao", "Ganhou", "Perdeu"]
+const statusOptions = ["Interesse", "Busca no mercado", "Proposta", "Negociação", "Ganhou", "Perdeu"]
 
 const getToday = () => new Date().toISOString().slice(0, 10)
 
@@ -367,8 +367,8 @@ const Deals = () => {
             if (deal.productId) {
               const product = products.find((item) => item.id === deal.productId)
 
-              if (product && product.status === "Em negociacao") {
-                await updateProduct(product.id, { status: "Disponivel", currentDealId: null })
+              if (product && product.status === "Negociando") {
+                await updateProduct(product.id, { status: "Disponível", currentDealId: null })
               }
             }
 
@@ -386,11 +386,11 @@ const Deals = () => {
 
   const syncProductLink = async (dealId, newProductId, previousProductId = "") => {
     if (previousProductId && previousProductId !== newProductId) {
-      await updateProduct(previousProductId, { status: "Disponivel", currentDealId: null })
+      await updateProduct(previousProductId, { status: "Disponível", currentDealId: null })
     }
 
     if (newProductId) {
-      await updateProduct(newProductId, { status: "Em negociacao", currentDealId: dealId })
+      await updateProduct(newProductId, { status: "Negociando", currentDealId: dealId })
     }
   }
 

@@ -1536,7 +1536,7 @@
       "lucroReal": "R$ 32.800,00",
       "margemReal": "9,6%",
       "prioridade": "Critica",
-      "status": "Negociacao",
+      "status": "Negociação",
       "updatedAt": "2026-03-18T03:00:00.0000000Z"
     },
     {
@@ -1716,7 +1716,7 @@
       "lucroReal": "R$ 37.000,00",
       "margemReal": "9,4%",
       "prioridade": "Media",
-      "status": "Negociacao",
+      "status": "Negociação",
       "updatedAt": "2026-03-17T03:00:00.0000000Z"
     },
     {
@@ -1896,7 +1896,7 @@
       "lucroReal": "R$ 41.200,00",
       "margemReal": "9,3%",
       "prioridade": "Critica",
-      "status": "Negociacao",
+      "status": "Negociação",
       "updatedAt": "2026-03-16T03:00:00.0000000Z"
     },
     {
@@ -2076,7 +2076,7 @@
       "lucroReal": "R$ 45.400,00",
       "margemReal": "9,3%",
       "prioridade": "Media",
-      "status": "Negociacao",
+      "status": "Negociação",
       "updatedAt": "2026-03-15T03:00:00.0000000Z"
     },
     {
@@ -2256,7 +2256,7 @@
       "lucroReal": "R$ 49.600,00",
       "margemReal": "9,2%",
       "prioridade": "Critica",
-      "status": "Negociacao",
+      "status": "Negociação",
       "updatedAt": "2026-03-14T03:00:00.0000000Z"
     },
     {
@@ -2436,7 +2436,7 @@
       "lucroReal": "R$ 53.800,00",
       "margemReal": "9,1%",
       "prioridade": "Media",
-      "status": "Negociacao",
+      "status": "Negociação",
       "updatedAt": "2026-03-20T03:00:00.0000000Z"
     },
     {
@@ -2616,7 +2616,7 @@
       "lucroReal": "R$ 58.000,00",
       "margemReal": "9,1%",
       "prioridade": "Critica",
-      "status": "Negociacao",
+      "status": "Negociação",
       "updatedAt": "2026-03-19T03:00:00.0000000Z"
     },
     {
@@ -2796,7 +2796,7 @@
       "lucroReal": "R$ 62.200,00",
       "margemReal": "9,1%",
       "prioridade": "Media",
-      "status": "Negociacao",
+      "status": "Negociação",
       "updatedAt": "2026-03-18T03:00:00.0000000Z"
     },
     {
@@ -2959,7 +2959,7 @@
       "capital": 287500,
       "margemEsperada": "9",
       "margem": "9%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d001",
       "currentDealId": "3903",
       "serviceIds": [
@@ -2978,7 +2978,7 @@
       "capital": 295000,
       "margemEsperada": "10",
       "margem": "10%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d002",
       "currentDealId": "d002",
       "serviceIds": [
@@ -2997,7 +2997,7 @@
       "capital": 302500,
       "margemEsperada": "11",
       "margem": "11%",
-      "status": "Disponivel",
+      "status": "Disponível",
       "linkedDealId": "",
       "currentDealId": null,
       "serviceIds": [
@@ -3016,7 +3016,7 @@
       "capital": 310000,
       "margemEsperada": "12",
       "margem": "12%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d004",
       "currentDealId": "d004",
       "serviceIds": [
@@ -3073,7 +3073,7 @@
       "capital": 332500,
       "margemEsperada": "15",
       "margem": "15%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d007",
       "currentDealId": "d007",
       "serviceIds": [
@@ -3092,7 +3092,7 @@
       "capital": 340000,
       "margemEsperada": "16",
       "margem": "16%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d008",
       "currentDealId": "d008",
       "serviceIds": [
@@ -3111,7 +3111,7 @@
       "capital": 347500,
       "margemEsperada": "8",
       "margem": "8%",
-      "status": "Disponivel",
+      "status": "Disponível",
       "linkedDealId": "",
       "currentDealId": null,
       "serviceIds": [
@@ -3130,7 +3130,7 @@
       "capital": 355000,
       "margemEsperada": "9",
       "margem": "9%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d010",
       "currentDealId": "d010",
       "serviceIds": [
@@ -3149,7 +3149,7 @@
       "capital": 362500,
       "margemEsperada": "10",
       "margem": "10%",
-      "status": "Disponivel",
+      "status": "Disponível",
       "linkedDealId": "",
       "currentDealId": null,
       "serviceIds": [
@@ -3187,7 +3187,7 @@
       "capital": 377500,
       "margemEsperada": "12",
       "margem": "12%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d013",
       "currentDealId": "d013",
       "serviceIds": [
@@ -3206,7 +3206,7 @@
       "capital": 385000,
       "margemEsperada": "13",
       "margem": "13%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d014",
       "currentDealId": "d014",
       "serviceIds": [
@@ -3244,7 +3244,7 @@
       "capital": 400000,
       "margemEsperada": "15",
       "margem": "15%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d016",
       "currentDealId": "d016",
       "serviceIds": [
@@ -3263,7 +3263,7 @@
       "capital": 407500,
       "margemEsperada": "16",
       "margem": "16%",
-      "status": "Disponivel",
+      "status": "Disponível",
       "linkedDealId": "",
       "currentDealId": null,
       "serviceIds": [
@@ -3301,7 +3301,7 @@
       "capital": 422500,
       "margemEsperada": "9",
       "margem": "9%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d019",
       "currentDealId": "d019",
       "serviceIds": [
@@ -3320,7 +3320,7 @@
       "capital": 430000,
       "margemEsperada": "10",
       "margem": "10%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d020",
       "currentDealId": "d020",
       "serviceIds": [
@@ -3339,7 +3339,7 @@
       "capital": 437500,
       "margemEsperada": "11",
       "margem": "11%",
-      "status": "Disponivel",
+      "status": "Disponível",
       "linkedDealId": "",
       "currentDealId": null,
       "serviceIds": [
@@ -3358,7 +3358,7 @@
       "capital": 445000,
       "margemEsperada": "12",
       "margem": "12%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d022",
       "currentDealId": "d022",
       "serviceIds": [
@@ -3377,7 +3377,7 @@
       "capital": 452500,
       "margemEsperada": "13",
       "margem": "13%",
-      "status": "Disponivel",
+      "status": "Disponível",
       "linkedDealId": "",
       "currentDealId": null,
       "serviceIds": [
@@ -3415,7 +3415,7 @@
       "capital": 467500,
       "margemEsperada": "15",
       "margem": "15%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d025",
       "currentDealId": "d025",
       "serviceIds": [
@@ -3434,7 +3434,7 @@
       "capital": 475000,
       "margemEsperada": "16",
       "margem": "16%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d026",
       "currentDealId": "d026",
       "serviceIds": [
@@ -3453,7 +3453,7 @@
       "capital": 482500,
       "margemEsperada": "8",
       "margem": "8%",
-      "status": "Disponivel",
+      "status": "Disponível",
       "linkedDealId": "",
       "currentDealId": null,
       "serviceIds": [
@@ -3472,7 +3472,7 @@
       "capital": 490000,
       "margemEsperada": "9",
       "margem": "9%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d028",
       "currentDealId": "d028",
       "serviceIds": [
@@ -3491,7 +3491,7 @@
       "capital": 497500,
       "margemEsperada": "10",
       "margem": "10%",
-      "status": "Disponivel",
+      "status": "Disponível",
       "linkedDealId": "",
       "currentDealId": null,
       "serviceIds": [
@@ -3529,7 +3529,7 @@
       "capital": 512500,
       "margemEsperada": "12",
       "margem": "12%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d031",
       "currentDealId": "d031",
       "serviceIds": [
@@ -3548,7 +3548,7 @@
       "capital": 520000,
       "margemEsperada": "13",
       "margem": "13%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d032",
       "currentDealId": "d032",
       "serviceIds": [
@@ -3567,7 +3567,7 @@
       "capital": 527500,
       "margemEsperada": "14",
       "margem": "14%",
-      "status": "Disponivel",
+      "status": "Disponível",
       "linkedDealId": "",
       "currentDealId": null,
       "serviceIds": [
@@ -3586,7 +3586,7 @@
       "capital": 535000,
       "margemEsperada": "15",
       "margem": "15%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d034",
       "currentDealId": "d034",
       "serviceIds": [
@@ -3643,7 +3643,7 @@
       "capital": 557500,
       "margemEsperada": "9",
       "margem": "9%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d037",
       "currentDealId": "d037",
       "serviceIds": [
@@ -3662,7 +3662,7 @@
       "capital": 565000,
       "margemEsperada": "10",
       "margem": "10%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d038",
       "currentDealId": "d038",
       "serviceIds": [
@@ -3681,7 +3681,7 @@
       "capital": 572500,
       "margemEsperada": "11",
       "margem": "11%",
-      "status": "Disponivel",
+      "status": "Disponível",
       "linkedDealId": "",
       "currentDealId": null,
       "serviceIds": [
@@ -3700,7 +3700,7 @@
       "capital": 580000,
       "margemEsperada": "12",
       "margem": "12%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d040",
       "currentDealId": "d040",
       "serviceIds": [
@@ -3719,7 +3719,7 @@
       "capital": 587500,
       "margemEsperada": "13",
       "margem": "13%",
-      "status": "Disponivel",
+      "status": "Disponível",
       "linkedDealId": "",
       "currentDealId": null,
       "serviceIds": [
@@ -3757,7 +3757,7 @@
       "capital": 602500,
       "margemEsperada": "15",
       "margem": "15%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d043",
       "currentDealId": "d043",
       "serviceIds": [
@@ -3776,7 +3776,7 @@
       "capital": 610000,
       "margemEsperada": "16",
       "margem": "16%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d044",
       "currentDealId": "d044",
       "serviceIds": [
@@ -3814,7 +3814,7 @@
       "capital": 625000,
       "margemEsperada": "9",
       "margem": "9%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d046",
       "currentDealId": "d046",
       "serviceIds": [
@@ -3833,7 +3833,7 @@
       "capital": 632500,
       "margemEsperada": "10",
       "margem": "10%",
-      "status": "Disponivel",
+      "status": "Disponível",
       "linkedDealId": "",
       "currentDealId": null,
       "serviceIds": [
@@ -3871,7 +3871,7 @@
       "capital": 647500,
       "margemEsperada": "12",
       "margem": "12%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d049",
       "currentDealId": "d049",
       "serviceIds": [
@@ -3890,7 +3890,7 @@
       "capital": 655000,
       "margemEsperada": "13",
       "margem": "13%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d050",
       "currentDealId": "d050",
       "serviceIds": [

@@ -99,7 +99,7 @@ export const buildProductRecommendation = (product, services = []) => {
   const days = getDaysInStock(product)
   const serviceCount = getProductLinkedServices(product, services).length
 
-  if (product?.status === "Em negociacao") {
+  if (product?.status === "Negociando") {
     return "Acompanhar proposta e reduzir atrito para fechamento."
   }
 
@@ -152,6 +152,21 @@ export const computeDealMetrics = ({
 export const slugStatusTone = (status) => {
   if (status === "Ganhou" || status === "Concluido") return "emerald"
   if (status === "Perdeu" || status === "Cancelado") return "rose"
-  if (status === "Em negociacao" || status === "Proposta") return "amber"
+  if (status === "Negociando" || status === "Proposta" || status === "Negociação") return "amber"
+  return "slate"
+}
+
+export const getProductStatusTone = (status) => {
+  if (status === "Negociando") return "amber"
+  if (status === "Disponível") return "emerald"
+  if (status === "Reservado") return "sky"
+  if (status === "Vendido") return "rose"
+  return "slate"
+}
+
+export const getServiceStatusTone = (status) => {
+  if (status === "Em andamento") return "amber"
+  if (status === "Agendado") return "sky"
+  if (status === "Concluído") return "emerald"
   return "slate"
 }

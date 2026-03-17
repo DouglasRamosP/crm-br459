@@ -30,6 +30,7 @@ const PersonDialog = ({
   onClose,
   onSave,
   companies = [],
+  historySummary = null,
   onRequestNewCompany,
   initialValues = baseForm,
   title = "Cadastrar pessoa",
@@ -114,6 +115,34 @@ const PersonDialog = ({
         <Input id="person-city" label="Cidade / regiao" value={form.cidade} onChange={handleChange("cidade")} placeholder="Cidade/UF" />
         <Input id="person-notes" label="Observacoes" value={form.observacoes} onChange={handleChange("observacoes")} placeholder="Preferencias, perfil de compra ou detalhe relevante" />
       </div>
+
+      {historySummary ? (
+        <div className="mt-5 rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-slate-800">Historico essencial</p>
+              <p className="text-sm text-slate-500">Visao rapida do relacionamento dessa pessoa com a operacao.</p>
+            </div>
+            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
+              {initialValues.empresa || "Sem empresa vinculada"}
+            </span>
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <article className="rounded-2xl bg-white px-4 py-3 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Negocios</p>
+              <p className="mt-2 text-xl font-semibold text-slate-900">{historySummary.deals}</p>
+            </article>
+            <article className="rounded-2xl bg-white px-4 py-3 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Servicos</p>
+              <p className="mt-2 text-xl font-semibold text-slate-900">{historySummary.services}</p>
+            </article>
+            <article className="rounded-2xl bg-white px-4 py-3 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Empresas</p>
+              <p className="mt-2 text-xl font-semibold text-slate-900">{historySummary.companies}</p>
+            </article>
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-4">
         <p className="text-sm font-semibold text-slate-700">Papeis no ecossistema</p>

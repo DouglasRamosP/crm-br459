@@ -27,6 +27,15 @@ const historyForPerson = (person, deals, services, companies) => {
   }
 }
 
+const formatBrazilPhone = (value) => {
+  const digits = String(value || "").replace(/\D/g, "")
+
+  if (!digits) return "Sem celular informado"
+  if (digits.length === 11) return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+  if (digits.length === 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`
+  return value
+}
+
 const People = () => {
   const [people, setPeople] = useState([])
   const [companies, setCompanies] = useState([])
@@ -182,19 +191,17 @@ const People = () => {
                 <th className="px-4 py-3 font-medium">Nome</th>
                 <th className="px-4 py-3 font-medium">Papeis</th>
                 <th className="px-4 py-3 font-medium">Empresa</th>
-                <th className="px-4 py-3 font-medium">Historico</th>
+                <th className="px-4 py-3 font-medium">Contato</th>
                 <th className="px-4 py-3 font-medium">Acoes</th>
               </tr>
             </thead>
             <tbody>
               {people.map((person) => {
-                const history = historyForPerson(person, deals, services, companies)
-
                 return (
                   <tr key={person.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
                     <td className="px-4 py-4">
                       <p className="font-medium text-slate-800">{person.nome}</p>
-                      <p className="mt-1 text-slate-500">{person.email || person.telefone || "Sem contato informado"}</p>
+                      <p className="mt-1 text-slate-500">{person.email || "Sem e-mail informado"}</p>
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex flex-wrap gap-2">
@@ -206,7 +213,7 @@ const People = () => {
                       </div>
                     </td>
                     <td className="px-4 py-4 text-slate-700">{person.empresa || "Sem empresa vinculada"}</td>
-                    <td className="px-4 py-4 text-slate-600">{history.deals} negocios, {history.services} servicos, {history.companies} empresas</td>
+                    <td className="px-4 py-4 text-slate-600">{formatBrazilPhone(person.telefone)}</td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
                         <button type="button" className="rounded-full p-2 text-amber-600 transition hover:bg-amber-50" onClick={() => handleView(person)}>
@@ -235,6 +242,7 @@ const People = () => {
         }}
         onSave={handleSave}
         companies={companies}
+        historySummary={selectedPerson ? historyForPerson(selectedPerson, deals, services, companies) : null}
         initialValues={selectedPerson || undefined}
         title={selectedPerson ? `Detalhes de ${selectedPerson.nome}` : "Cadastrar pessoa"}
         subtitle={selectedPerson ? "Revise o cadastro, historico e papeis desta pessoa." : "Pessoa tem identidade unica e pode acumular multiplos papeis."}

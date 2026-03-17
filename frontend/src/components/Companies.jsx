@@ -190,7 +190,6 @@ const Companies = () => {
             companies={companies}
             onDelete={handleDelete}
             onView={handleView}
-            historyForCompany={(company) => historyForCompany(company, people, deals, services)}
           />
         )}
       </div>
@@ -205,6 +204,7 @@ const Companies = () => {
         }}
         onSave={handleSaveCompany}
         people={people}
+        historySummary={selectedCompany ? historyForCompany(selectedCompany, people, deals, services) : null}
         onRequestNewPerson={() => setPersonDialogOpen(true)}
         initialValues={selectedCompany || undefined}
         title={selectedCompany ? `Detalhes de ${selectedCompany.nome}` : "Cadastrar empresa"}

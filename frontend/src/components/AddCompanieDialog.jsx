@@ -29,6 +29,7 @@ const CompanieDialog = ({
   onClose,
   onSave,
   people = [],
+  historySummary = null,
   onRequestNewPerson,
   initialValues = baseForm,
   title = "Cadastrar empresa",
@@ -110,6 +111,34 @@ const CompanieDialog = ({
         <Input id="company-email" label="E-mail do responsavel" placeholder="email@empresa.com.br" value={form.email} onChange={handleChange("email")} />
         <Input id="company-phone" label="Contato do responsavel" placeholder="(00) 00000-0000" value={form.telefone} onChange={handleChange("telefone")} />
       </div>
+
+      {historySummary ? (
+        <div className="mt-5 rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-slate-800">Historico essencial</p>
+              <p className="text-sm text-slate-500">Resumo rapido da participacao dessa empresa na operacao.</p>
+            </div>
+            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
+              {initialValues.responsavel || "Sem responsavel"}
+            </span>
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <article className="rounded-2xl bg-white px-4 py-3 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Pessoas</p>
+              <p className="mt-2 text-xl font-semibold text-slate-900">{historySummary.people}</p>
+            </article>
+            <article className="rounded-2xl bg-white px-4 py-3 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Negocios</p>
+              <p className="mt-2 text-xl font-semibold text-slate-900">{historySummary.deals}</p>
+            </article>
+            <article className="rounded-2xl bg-white px-4 py-3 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Servicos</p>
+              <p className="mt-2 text-xl font-semibold text-slate-900">{historySummary.services}</p>
+            </article>
+          </div>
+        </div>
+      ) : null}
     </Dialog>
   )
 }

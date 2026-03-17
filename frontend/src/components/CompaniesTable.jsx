@@ -4,7 +4,16 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/solid"
 
-const CompaniesTable = ({ companies, onDelete, onView, historyForCompany }) => {
+const formatBrazilPhone = (value) => {
+  const digits = String(value || "").replace(/\D/g, "")
+
+  if (!digits) return "Sem celular informado"
+  if (digits.length === 11) return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+  if (digits.length === 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`
+  return value
+}
+
+const CompaniesTable = ({ companies, onDelete, onView }) => {
   if (!companies.length) {
     return (
       <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center text-sm text-slate-500">
@@ -22,15 +31,12 @@ const CompaniesTable = ({ companies, onDelete, onView, historyForCompany }) => {
             <th className="px-4 py-3 font-medium">Categoria</th>
             <th className="px-4 py-3 font-medium">Responsavel</th>
             <th className="px-4 py-3 font-medium">Contato</th>
-            <th className="px-4 py-3 font-medium">Historico</th>
             <th className="px-4 py-3 font-medium">Acoes</th>
           </tr>
         </thead>
 
         <tbody>
           {companies.map((company) => {
-            const history = historyForCompany(company)
-
             return (
               <tr key={company.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
                 <td className="px-4 py-4 font-medium text-slate-800">
@@ -45,8 +51,7 @@ const CompaniesTable = ({ companies, onDelete, onView, historyForCompany }) => {
                   </span>
                 </td>
                 <td className="px-4 py-4 text-slate-700">{company.responsavel}</td>
-                <td className="px-4 py-4 text-slate-600">{company.email || company.telefone || "-"}</td>
-                <td className="px-4 py-4 text-slate-600">{history.people} pessoas, {history.deals} negocios, {history.services} servicos</td>
+                <td className="px-4 py-4 text-slate-600">{formatBrazilPhone(company.telefone)}</td>
                 <td className="px-4 py-4">
                   <div className="flex items-center gap-3">
                     <button

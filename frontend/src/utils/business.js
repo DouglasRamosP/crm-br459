@@ -150,7 +150,7 @@ export const computeDealMetrics = ({
 }
 
 export const slugStatusTone = (status) => {
-  if (status === "Ganhou" || status === "Concluido") return "emerald"
+  if (status === "Ganhou" || status === "Concluído") return "emerald"
   if (status === "Perdeu" || status === "Cancelado") return "rose"
   if (status === "Negociando" || status === "Proposta" || status === "Negociação") return "amber"
   return "slate"

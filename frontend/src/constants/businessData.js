@@ -235,7 +235,7 @@ export const servicesOverview = [
     provider: "Rota Express",
     cost: "R$ 3.900",
     impact: "Considerado no lucro real",
-    status: "Concluido",
+    status: "Concluído",
   },
 ]
 

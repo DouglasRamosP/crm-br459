@@ -13,7 +13,13 @@ import { listDeals } from "../services/deals"
 import { createPerson, listPeople } from "../services/people"
 import { listProducts } from "../services/products"
 import { createService, listServices, removeService, updateService } from "../services/serviceRecords"
-import { formatCurrency, formatCurrencyInput, parseMoney, toCurrencyInputValue } from "../utils/business"
+import {
+  formatCurrency,
+  formatCurrencyInput,
+  getServiceStatusTone,
+  parseMoney,
+  toCurrencyInputValue,
+} from "../utils/business"
 import CompanieDialog from "./AddCompanieDialog"
 import Button from "./Button"
 import Dialog from "./Dialog"
@@ -21,8 +27,14 @@ import Input from "./Input"
 import PersonDialog from "./PersonDialog"
 import Select from "./Select"
 
-const statusOptions = ["Em andamento", "Agendado", "Concluido", "Pendente"]
+const statusOptions = ["Em andamento", "Agendado", "Concluído", "Pendente"]
 const typeOptions = ["Mecanica", "Regularizacao", "Transporte", "Vistoria", "Outro"]
+const statusToneClasses = {
+  amber: "bg-amber-100 text-amber-700",
+  emerald: "bg-emerald-100 text-emerald-700",
+  sky: "bg-sky-100 text-sky-700",
+  slate: "bg-slate-100 text-slate-700",
+}
 
 const baseForm = {
   nome: "",
@@ -289,7 +301,7 @@ const Services = () => {
   const summaryCards = [
     { label: "Servicos registrados", value: services.length, detail: "Custos e prestacoes ligados a produto, negocio, pessoa ou empresa." },
     { label: "Em andamento", value: services.filter((service) => service.status === "Em andamento").length, detail: "Itens que ainda podem alterar a margem final." },
-    { label: "Custos em aberto", value: formatCurrency(services.filter((service) => service.status !== "Concluido").reduce((sum, service) => sum + parseMoney(service.custoValor || service.custo), 0)), detail: "Volume financeiro ainda pressionando o resultado." },
+    { label: "Custos em aberto", value: formatCurrency(services.filter((service) => service.status !== "Concluído").reduce((sum, service) => sum + parseMoney(service.custoValor || service.custo), 0)), detail: "Volume financeiro ainda pressionando o resultado." },
   ]
 
   return (
@@ -318,15 +330,19 @@ const Services = () => {
           <table className="w-full border-collapse text-sm">
             <thead className="border-b border-slate-200 bg-slate-50 text-left text-slate-500"><tr><th className="px-4 py-3 font-medium">Servico</th><th className="px-4 py-3 font-medium">Vinculos</th><th className="px-4 py-3 font-medium">Prestador</th><th className="px-4 py-3 font-medium">Status</th><th className="px-4 py-3 font-medium">Acoes</th></tr></thead>
             <tbody>
-              {services.map((service) => (
-                <tr key={service.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-                  <td className="px-4 py-4"><p className="font-medium text-slate-800">{service.nome}</p><p className="mt-1 text-slate-500">{service.custo || formatCurrency(service.custoValor || 0)}</p></td>
-                  <td className="px-4 py-4 text-slate-700">{service.vinculo || "Sem vinculo"}</td>
-                  <td className="px-4 py-4 text-slate-700">{service.prestador || "Sem prestador"}</td>
-                  <td className="px-4 py-4"><span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">{service.status}</span></td>
-                  <td className="px-4 py-4"><div className="flex items-center gap-3"><button type="button" className="rounded-full p-2 text-amber-600 transition hover:bg-amber-50" onClick={() => handleView(service)}><ArrowTopRightOnSquareIcon className="h-4 w-4" /></button><button type="button" className="rounded-full p-2 text-rose-500 transition hover:bg-rose-50" onClick={() => handleDelete(service)}><TrashIcon className="h-4 w-4" /></button></div></td>
-                </tr>
-              ))}
+              {services.map((service) => {
+                const statusTone = statusToneClasses[getServiceStatusTone(service.status)] || statusToneClasses.slate
+
+                return (
+                  <tr key={service.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+                    <td className="px-4 py-4"><p className="font-medium text-slate-800">{service.nome}</p><p className="mt-1 text-slate-500">{service.custo || formatCurrency(service.custoValor || 0)}</p></td>
+                    <td className="px-4 py-4 text-slate-700">{service.vinculo || "Sem vinculo"}</td>
+                    <td className="px-4 py-4 text-slate-700">{service.prestador || "Sem prestador"}</td>
+                    <td className="px-4 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusTone}`}>{service.status}</span></td>
+                    <td className="px-4 py-4"><div className="flex items-center gap-3"><button type="button" className="rounded-full p-2 text-amber-600 transition hover:bg-amber-50" onClick={() => handleView(service)}><ArrowTopRightOnSquareIcon className="h-4 w-4" /></button><button type="button" className="rounded-full p-2 text-rose-500 transition hover:bg-rose-50" onClick={() => handleDelete(service)}><TrashIcon className="h-4 w-4" /></button></div></td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         )}

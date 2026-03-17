@@ -235,7 +235,7 @@ const buildSpotlightKpis = ({ companies, deals, products, people, services }) =>
     (sum, product) => sum + getProductTotalCost(product, services),
     0
   )
-  const openServices = services.filter((service) => service.status !== "Concluido")
+  const openServices = services.filter((service) => service.status !== "Concluído")
   const activeDeals = deals.filter((deal) => !["Ganhou", "Perdeu"].includes(deal.status))
   const wonSales = deals.filter(
     (deal) => deal.tipoDemanda === "Compra" && deal.status === "Ganhou"
@@ -292,7 +292,7 @@ const buildStrategicAlerts = ({ deals, products, services, companies }) => {
       !deal.productId
   )
   const longStandingProducts = products.filter((product) => getProductDays(product) > 45)
-  const openServices = services.filter((service) => service.status !== "Concluido")
+  const openServices = services.filter((service) => service.status !== "Concluído")
   const acquisitionLeads = deals.filter(
     (deal) => deal.tipoDemanda === "Venda" && !["Ganhou", "Perdeu"].includes(deal.status)
   )

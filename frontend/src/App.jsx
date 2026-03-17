@@ -22,7 +22,7 @@ const navigationItems = [
   },
   {
     id: "negocios",
-    label: "Negocios",
+    label: "Negócios",
     description: "Funil comercial guiado por demanda",
     icon: BriefcaseIcon,
   },

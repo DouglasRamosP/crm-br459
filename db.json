@@ -4,13 +4,13 @@
       "id": "c001",
       "nome": "Transvale 1",
       "categoria": "Cliente",
-      "responsavelId": "p001",
-      "responsavel": "Responsavel 1",
+      "responsavelId": "f01f",
+      "responsavel": "Júlia Mill",
       "cidade": "Varginha/MG",
-      "email": "contato1@empresa.com.br",
-      "telefone": "(35) 99001-1001",
+      "email": "juliamill@gmail.com",
+      "telefone": "35999110293",
       "createdAt": "2026-01-02T03:00:00.0000000Z",
-      "updatedAt": "2026-03-02T03:00:00.0000000Z"
+      "updatedAt": "2026-03-17T02:22:15.909Z"
     },
     {
       "id": "c002",
@@ -1416,6 +1416,21 @@
       "empresa": "",
       "createdAt": "2026-03-16T22:19:54.620Z",
       "updatedAt": "2026-03-16T22:19:54.620Z"
+    },
+    {
+      "id": "1ddb",
+      "nome": "Thiago ",
+      "empresaId": "",
+      "email": "douglasramospimenta@gmail.com",
+      "telefone": "(31) 98001-2001",
+      "cidade": "Varginha",
+      "observacoes": "",
+      "papeis": [
+        "Cliente"
+      ],
+      "empresa": "",
+      "createdAt": "2026-03-17T11:48:07.863Z",
+      "updatedAt": "2026-03-17T11:48:07.863Z"
     }
   ],
   "deals": [
@@ -1447,7 +1462,7 @@
       "margemReal": "9,2%",
       "prioridade": "Baixa",
       "status": "Ganhou",
-      "updatedAt": "2026-03-17T01:26:46.936Z"
+      "updatedAt": "2026-03-17T02:44:21.452Z"
     },
     {
       "id": "d002",
@@ -2948,6 +2963,36 @@
       "prioridade": "Alta",
       "status": "Proposta",
       "updatedAt": "2026-03-16T22:21:22.079Z"
+    },
+    {
+      "id": "4dde",
+      "personId": "1ddb",
+      "contato": "Thiago ",
+      "companyId": "c001",
+      "empresa": "Transvale 1",
+      "tipoDemanda": "Compra",
+      "descricao": "",
+      "dataNegocio": "2026-03-17T15:00:00.000Z",
+      "createdAt": "2026-03-17T15:00:00.000Z",
+      "prazoDias": 0,
+      "productId": "pr019",
+      "produtoNegociado": "Mercedes Atego 2430 2023",
+      "descricaoProdutoManual": "",
+      "produtoOrigem": "Estoque",
+      "produtoStatus": "Associado",
+      "propostaCliente": "R$ 480.000,00",
+      "valorVenda": "R$ 480.000,00",
+      "custoBase": 427215,
+      "custoBaseFormatado": "R$ 427.215,00",
+      "valorReferencia": 480000,
+      "valorReferenciaFormatado": "R$ 480.000,00",
+      "lucroValor": 52785,
+      "lucroPercentual": 10.996875000000001,
+      "lucroReal": "R$ 52.785,00",
+      "margemReal": "11,0%",
+      "prioridade": "Media",
+      "status": "Interesse",
+      "updatedAt": "2026-03-17T11:49:44.807Z"
     }
   ],
   "products": [
@@ -2955,9 +3000,9 @@
       "id": "pr001",
       "modelo": "Volvo FH 540 2019",
       "dataEntrada": "2026-01-14",
-      "valorAquisicao": 287500,
+      "valorAquisicao": "R$ 287.500,00",
       "capital": 287500,
-      "margemEsperada": "9",
+      "margemEsperada": "5",
       "margem": "9%",
       "status": "Negociando",
       "linkedDealId": "d001",
@@ -2966,9 +3011,12 @@
         "s001"
       ],
       "recomendacao": "Ativar carteira aderente e revisar argumentacao comercial.",
-      "diasEmEstoque": 61,
+      "diasEmEstoque": 62,
       "createdAt": "2026-01-11T03:00:00.0000000Z",
-      "updatedAt": "2026-03-17T01:26:46.981Z"
+      "updatedAt": "2026-03-17T02:44:21.422Z",
+      "totalServicos": 1385,
+      "custoTotal": 288885,
+      "precoEstimadoVenda": 303329.25
     },
     {
       "id": "pr002",
@@ -3301,16 +3349,16 @@
       "capital": 422500,
       "margemEsperada": "9",
       "margem": "9%",
-      "status": "Em negociacao",
+      "status": "Negociando",
       "linkedDealId": "d019",
-      "currentDealId": "d019",
+      "currentDealId": "4dde",
       "serviceIds": [
         "s019"
       ],
       "recomendacao": "Ativar carteira aderente e revisar argumentacao comercial.",
       "diasEmEstoque": 79,
       "createdAt": "2026-01-29T03:00:00.0000000Z",
-      "updatedAt": "2026-03-11T03:00:00.0000000Z"
+      "updatedAt": "2026-03-17T11:49:44.881Z"
     },
     {
       "id": "pr020",

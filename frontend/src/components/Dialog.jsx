@@ -11,7 +11,7 @@ const Dialog = ({
   subtitle,
   footer,
   children,
-  panelClassName = "max-h-[85vh] w-full max-w-4xl overflow-y-auto rounded-[28px] bg-white p-6 shadow-2xl md:p-8",
+  panelClassName = "crm-scrollbar max-h-[85vh] w-full max-w-4xl overflow-y-auto overscroll-contain rounded-[28px] bg-white p-6 shadow-2xl md:p-8",
 }) => {
   const nodeRef = useRef()
 

@@ -34,8 +34,52 @@ import Select from "./Select"
 const demandOptions = ["Compra", "Venda"]
 const priorityOptions = ["Baixa", "Media", "Alta", "Critica"]
 const statusOptions = ["Interesse", "Busca no mercado", "Proposta", "Negociação", "Ganhou", "Perdeu"]
+const activeProductDealStatuses = new Set(["Interesse", "Busca no mercado", "Proposta", "Negociação"])
+const dealStatusToneClasses = {
+  Ganhou: "bg-emerald-100 text-emerald-700",
+  "Busca no mercado": "bg-sky-100 text-sky-700",
+  Proposta: "bg-amber-100 text-amber-700",
+  Perdeu: "bg-rose-100 text-rose-700",
+  "Negociação": "bg-amber-100 text-amber-700",
+  Interesse: "bg-orange-100 text-orange-700",
+  default: "bg-slate-100 text-slate-700",
+}
 
 const getToday = () => new Date().toISOString().slice(0, 10)
+const dayInMs = 86400000
+
+const getDealRemainingDays = (deal) => {
+  if (!deal?.dataNegocio || deal?.prazoDias == null || deal.prazoDias === "") return null
+
+  const startDate = new Date(deal.dataNegocio)
+  const today = new Date()
+
+  if (Number.isNaN(startDate.getTime())) return null
+
+  startDate.setHours(0, 0, 0, 0)
+  today.setHours(0, 0, 0, 0)
+
+  const deadline = new Date(startDate)
+  deadline.setDate(deadline.getDate() + Number(deal.prazoDias || 0))
+
+  return Math.floor((deadline.getTime() - today.getTime()) / dayInMs)
+}
+
+const getDealDeadlineVisualState = (remainingDays) => {
+  if (remainingDays == null) return "default"
+  if (remainingDays <= 0) return "critical"
+  if (remainingDays === 1) return "warning"
+  return "default"
+}
+
+const getDealDeadlineLabel = (remainingDays) => {
+  if (remainingDays == null) return "Sem prazo"
+  if (remainingDays <= 0) return "Prazo encerrado"
+  if (remainingDays === 1) return "1 dia restante"
+  return `${remainingDays} dias restantes`
+}
+
+const shouldShowDealDeadline = (status) => !["Ganhou", "Perdeu"].includes(status)
 
 const baseForm = {
   personId: "",
@@ -360,22 +404,53 @@ const Deals = () => {
     loadDeals()
   }, [])
 
+  const resolveProductStateFromDeals = (productId, projectedDeals) => {
+    const linkedDeals = projectedDeals.filter((deal) => deal.productId === productId)
+    const wonDeal = linkedDeals.find((deal) => deal.status === "Ganhou")
+
+    if (wonDeal) {
+      return {
+        status: "Vendido",
+        currentDealId: wonDeal.id,
+      }
+    }
+
+    const activeDeal = linkedDeals.find((deal) => activeProductDealStatuses.has(deal.status))
+
+    if (activeDeal) {
+      return {
+        status: "Negociando",
+        currentDealId: activeDeal.id,
+      }
+    }
+
+    return {
+      status: "Disponível",
+      currentDealId: null,
+    }
+  }
+
+  const syncProductStatuses = async (projectedDeals, productIds) => {
+    const uniqueProductIds = [...new Set(productIds.filter(Boolean))]
+
+    await Promise.all(
+      uniqueProductIds.map(async (productId) => {
+        const nextState = resolveProductStateFromDeals(productId, projectedDeals)
+        await updateProduct(productId, nextState)
+      })
+    )
+  }
+
   const handleDelete = (deal) => {
     toast.warning("Confirmar exclusao do negocio?", {
       action: {
         label: "Excluir",
         onClick: async () => {
           try {
-            if (deal.productId) {
-              const product = products.find((item) => item.id === deal.productId)
-
-              if (product && product.status === "Negociando") {
-                await updateProduct(product.id, { status: "Disponível", currentDealId: null })
-              }
-            }
-
+            const projectedDeals = deals.filter((item) => item.id !== deal.id)
+            await syncProductStatuses(projectedDeals, [deal.productId])
             await removeDeal(deal.id)
-            setDeals((current) => current.filter((item) => item.id !== deal.id))
+            setDeals(projectedDeals)
             toast.success("Negocio excluido com sucesso")
             await loadDeals()
           } catch (error) {
@@ -386,28 +461,20 @@ const Deals = () => {
     })
   }
 
-  const syncProductLink = async (dealId, newProductId, previousProductId = "") => {
-    if (previousProductId && previousProductId !== newProductId) {
-      await updateProduct(previousProductId, { status: "Disponível", currentDealId: null })
-    }
-
-    if (newProductId) {
-      await updateProduct(newProductId, { status: "Negociando", currentDealId: dealId })
-    }
-  }
-
   const handleSave = async (payload) => {
     setIsSaving(true)
 
     try {
       if (selectedDeal) {
         const saved = await updateDeal(selectedDeal.id, payload)
-        await syncProductLink(selectedDeal.id, payload.productId, selectedDeal.productId || "")
+        const projectedDeals = deals.map((item) => (item.id === selectedDeal.id ? saved : item))
+        await syncProductStatuses(projectedDeals, [selectedDeal.productId || "", payload.productId || ""])
         setDeals((current) => current.map((item) => (item.id === selectedDeal.id ? saved : item)))
         toast.success("Negocio atualizado com sucesso")
       } else {
         const saved = await createDeal(payload)
-        await syncProductLink(saved.id, payload.productId)
+        const projectedDeals = [saved, ...deals]
+        await syncProductStatuses(projectedDeals, [payload.productId || ""])
         setDeals((current) => [saved, ...current])
         toast.success("Negocio adicionado com sucesso")
       }
@@ -451,6 +518,9 @@ const Deals = () => {
     { label: "Compra", value: deals.filter((deal) => deal.tipoDemanda === "Compra").length, detail: "Clientes buscando caminhao ou oportunidade de venda." },
     { label: "Venda", value: deals.filter((deal) => deal.tipoDemanda === "Venda").length, detail: "Leads oferecendo caminhao para compra da loja." },
   ]
+  const soldProductIds = new Set(
+    deals.filter((deal) => deal.status === "Ganhou" && deal.productId).map((deal) => deal.productId)
+  )
 
   return (
     <section className="rounded-[28px] border border-white/70 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur">
@@ -476,17 +546,63 @@ const Deals = () => {
       <div className="mt-6 overflow-x-auto rounded-[24px] border border-slate-200 bg-white">
         {isLoading ? <div className="px-6 py-12 text-center text-sm text-slate-500">Carregando negocios do json-server...</div> : !deals.length ? <div className="px-6 py-12 text-center text-sm text-slate-500">Nenhum negocio cadastrado ainda.</div> : (
           <table className="w-full border-collapse text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-left text-slate-500"><tr><th className="px-4 py-3 font-medium">Origem</th><th className="px-4 py-3 font-medium">Tipo e prazo</th><th className="px-4 py-3 font-medium">Produto</th><th className="px-4 py-3 font-medium">Proposta e lucro</th><th className="px-4 py-3 font-medium">Acoes</th></tr></thead>
+            <thead className="border-b border-slate-200 bg-slate-50 text-left text-slate-500"><tr><th className="px-4 py-3 font-medium">Origem</th><th className="px-4 py-3 font-medium">Tipo e prazo</th><th className="px-4 py-3 font-medium">Status</th><th className="px-4 py-3 font-medium">Produto</th><th className="px-4 py-3 font-medium">Proposta e lucro</th><th className="px-4 py-3 font-medium">Acoes</th></tr></thead>
             <tbody>
-              {deals.map((deal) => (
-                <tr key={deal.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-                  <td className="px-4 py-4"><p className="font-medium text-slate-800">{deal.empresa || deal.contato || "Sem identificacao"}</p><p className="mt-1 text-slate-500">{deal.contato || "Sem pessoa vinculada"}</p></td>
-                  <td className="px-4 py-4"><p className="font-medium text-slate-800">{deal.tipoDemanda}</p><p className="mt-1 text-slate-500">{deal.prazoDias ? `${deal.prazoDias} dias` : "Sem prazo"} - {deal.status}</p></td>
-                  <td className="px-4 py-4"><p className="font-medium text-slate-800">{deal.produtoNegociado || "A definir"}</p><p className="mt-1 text-slate-500">{deal.produtoOrigem === "Estoque" ? "Vindo do estoque" : "Descricao manual"}</p></td>
-                  <td className="px-4 py-4"><p className="font-medium text-slate-800">Proposta: {deal.propostaCliente}</p><p className="mt-1 text-slate-500">Lucro: {deal.lucroReal || formatCurrency(parseMoney(deal.lucroValor))} - {deal.margemReal || formatPercent(deal.lucroPercentual)}</p></td>
-                  <td className="px-4 py-4"><div className="flex items-center gap-3"><button type="button" className="rounded-full p-2 text-amber-600 transition hover:bg-amber-50" onClick={() => handleView(deal)}><ArrowTopRightOnSquareIcon className="h-4 w-4" /></button><button type="button" className="rounded-full p-2 text-rose-500 transition hover:bg-rose-50" onClick={() => handleDelete(deal)}><TrashIcon className="h-4 w-4" /></button></div></td>
-                </tr>
-              ))}
+              {deals.map((deal) => {
+                const lostProductToWonDeal = Boolean(
+                  deal.productId && deal.status !== "Ganhou" && soldProductIds.has(deal.productId)
+                )
+                const shouldShowDeadline = shouldShowDealDeadline(deal.status)
+                const remainingDays = shouldShowDeadline ? getDealRemainingDays(deal) : null
+                const deadlineVisualState = shouldShowDeadline ? getDealDeadlineVisualState(remainingDays) : "default"
+                const statusTone = dealStatusToneClasses[deal.status] || dealStatusToneClasses.default
+                const rowClass =
+                  deadlineVisualState === "critical"
+                    ? "bg-rose-50/80 hover:bg-rose-100/70"
+                    : deadlineVisualState === "warning"
+                      ? "bg-amber-50/80 hover:bg-amber-100/70"
+                      : "hover:bg-slate-50"
+                const prazoClass =
+                  deadlineVisualState === "critical"
+                    ? "text-rose-600"
+                    : deadlineVisualState === "warning"
+                      ? "text-amber-700"
+                      : "text-slate-500"
+
+                return (
+                  <tr key={deal.id} className={`border-b border-slate-100 last:border-0 ${rowClass}`}>
+                    <td className="px-4 py-4">
+                      <div>
+                        <p className="font-medium text-slate-800">{deal.empresa || deal.contato || "Sem identificacao"}</p>
+                        <p className="mt-1 text-slate-500">{deal.contato || "Sem pessoa vinculada"}</p>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <p className="font-medium text-slate-800">{deal.tipoDemanda}</p>
+                      {shouldShowDeadline ? <p className={`mt-1 ${prazoClass}`}>{getDealDeadlineLabel(remainingDays)}</p> : null}
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusTone}`}>
+                        {deal.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4">
+                      <p className={`font-medium ${lostProductToWonDeal ? "text-rose-600" : "text-slate-800"}`}>{deal.produtoNegociado || "A definir"}</p>
+                      <p className={`mt-1 ${lostProductToWonDeal ? "text-rose-500" : "text-slate-500"}`}>{lostProductToWonDeal ? "Produto vendido em outro negocio" : deal.produtoOrigem === "Estoque" ? "Vindo do estoque" : "Descricao manual"}</p>
+                    </td>
+                    <td className="px-4 py-4">
+                      <p className="font-medium text-slate-800">Proposta: {deal.propostaCliente}</p>
+                      <p className="mt-1 text-slate-500">Lucro: {deal.lucroReal || formatCurrency(parseMoney(deal.lucroValor))} - {deal.margemReal || formatPercent(deal.lucroPercentual)}</p>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-3">
+                        <button type="button" className="rounded-full p-2 text-amber-600 transition hover:bg-amber-50" onClick={() => handleView(deal)}><ArrowTopRightOnSquareIcon className="h-4 w-4" /></button>
+                        <button type="button" className="rounded-full p-2 text-rose-500 transition hover:bg-rose-50" onClick={() => handleDelete(deal)}><TrashIcon className="h-4 w-4" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         )}

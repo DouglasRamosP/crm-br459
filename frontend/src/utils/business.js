@@ -1,9 +1,26 @@
-export const formatCurrency = (value) =>
-  new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 0,
-  }).format(Number(value || 0))
+const currencyFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+
+export const formatCurrency = (value) => currencyFormatter.format(Number(value || 0))
+
+const moneyDigitsOnly = (value) => String(value || "").replace(/\D/g, "")
+
+export const formatCurrencyInput = (value) => {
+  const digits = moneyDigitsOnly(value)
+
+  if (!digits) return ""
+
+  return formatCurrency(Number(digits) / 100)
+}
+
+export const toCurrencyInputValue = (value) => {
+  if (value == null || value === "") return ""
+  return formatCurrency(parseMoney(value))
+}
 
 export const parseMoney = (value) => {
   if (typeof value === "number") return value
@@ -82,7 +99,7 @@ export const buildProductRecommendation = (product, services = []) => {
   const days = getDaysInStock(product)
   const serviceCount = getProductLinkedServices(product, services).length
 
-  if (product?.status === "Em negociacao") {
+  if (product?.status === "Negociando") {
     return "Acompanhar proposta e reduzir atrito para fechamento."
   }
 
@@ -133,8 +150,23 @@ export const computeDealMetrics = ({
 }
 
 export const slugStatusTone = (status) => {
-  if (status === "Ganhou" || status === "Concluido") return "emerald"
+  if (status === "Ganhou" || status === "Concluído") return "emerald"
   if (status === "Perdeu" || status === "Cancelado") return "rose"
-  if (status === "Em negociacao" || status === "Proposta") return "amber"
+  if (status === "Negociando" || status === "Proposta" || status === "Negociação") return "amber"
+  return "slate"
+}
+
+export const getProductStatusTone = (status) => {
+  if (status === "Negociando") return "amber"
+  if (status === "Disponível") return "emerald"
+  if (status === "Reservado") return "sky"
+  if (status === "Vendido") return "rose"
+  return "slate"
+}
+
+export const getServiceStatusTone = (status) => {
+  if (status === "Em andamento") return "amber"
+  if (status === "Agendado") return "sky"
+  if (status === "Concluído") return "emerald"
   return "slate"
 }

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Placa BR 459">
+  <rect width="64" height="64" rx="12" fill="#111111" />
+  <path d="M18 10h28c4.4 0 8 3.6 8 8v14c0 15.6-9 21.9-22 28-13-6.1-22-12.4-22-28V18c0-4.4 3.6-8 8-8Z" fill="#f5c400" stroke="#111111" stroke-width="2.5" />
+  <rect x="16" y="16" width="32" height="10" rx="4" fill="#111111" />
+  <text x="32" y="24" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="700" fill="#f5c400">BR</text>
+  <text x="32" y="43" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="800" fill="#111111">459</text>
+</svg>

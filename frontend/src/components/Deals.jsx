@@ -16,9 +16,12 @@ import { listServices } from "../services/serviceRecords"
 import {
   computeDealMetrics,
   formatCurrency,
+  formatCurrencyInput,
   formatPercent,
   getProductBaseCost,
+  getProductEstimatedSale,
   parseMoney,
+  toCurrencyInputValue,
 } from "../utils/business"
 import CompanieDialog from "./AddCompanieDialog"
 import Button from "./Button"
@@ -29,7 +32,7 @@ import Select from "./Select"
 
 const demandOptions = ["Compra", "Venda"]
 const priorityOptions = ["Baixa", "Media", "Alta", "Critica"]
-const statusOptions = ["Interesse", "Busca no mercado", "Proposta", "Negociacao", "Ganhou", "Perdeu"]
+const statusOptions = ["Interesse", "Busca no mercado", "Proposta", "Negociação", "Ganhou", "Perdeu"]
 
 const getToday = () => new Date().toISOString().slice(0, 10)
 
@@ -54,8 +57,9 @@ const createFormState = (initialValues = {}) => ({
   ...initialValues,
   dataNegocio: (initialValues.dataNegocio || initialValues.createdAt || getToday()).slice(0, 10),
   prazoDias: initialValues.prazoDias != null ? String(initialValues.prazoDias) : "",
-  custoBaseEstimado: initialValues.custoBaseEstimado || (initialValues.productId ? "" : String(initialValues.custoBase || "")),
-  valorReferenciaVenda: initialValues.valorReferenciaVenda || String(initialValues.valorReferencia || initialValues.valorVenda || ""),
+  propostaCliente: toCurrencyInputValue(initialValues.propostaCliente),
+  custoBaseEstimado: initialValues.productId ? "" : toCurrencyInputValue(initialValues.custoBaseEstimado || initialValues.custoBase),
+  valorReferenciaVenda: toCurrencyInputValue(initialValues.valorReferenciaVenda || initialValues.valorReferencia || initialValues.valorVenda),
 })
 
 const DealDialog = ({
@@ -79,9 +83,11 @@ const DealDialog = ({
   const [isCompanyDialogOpen, setCompanyDialogOpen] = useState(false)
   const [isQuickSavingPerson, setQuickSavingPerson] = useState(false)
   const [isQuickSavingCompany, setQuickSavingCompany] = useState(false)
+  const [errors, setErrors] = useState({})
 
   const handleClose = () => {
     setForm(createFormState(initialValues))
+    setErrors({})
     setPersonDialogOpen(false)
     setCompanyDialogOpen(false)
     onClose?.()
@@ -92,6 +98,7 @@ const DealDialog = ({
   const selectedProduct = products.find((product) => product.id === form.productId)
   const availableProducts = products.filter((product) => product.status !== "Vendido" || product.id === form.productId)
   const baseCostFromStock = selectedProduct ? getProductBaseCost(selectedProduct, services) : 0
+  const saleValueFromStock = selectedProduct ? getProductEstimatedSale(selectedProduct, services) : 0
   const metrics = computeDealMetrics({
     dealType: form.tipoDemanda,
     proposalValue: form.propostaCliente,
@@ -111,20 +118,91 @@ const DealDialog = ({
     }
   }, [form.tipoDemanda])
 
+  const clearErrors = (...fieldNames) => {
+    setErrors((current) => {
+      if (!fieldNames.some((field) => current[field])) return current
+
+      const next = { ...current }
+      fieldNames.forEach((field) => delete next[field])
+      return next
+    })
+  }
+
   const handleChange = (field) => (event) => {
-    setForm((prev) => ({ ...prev, [field]: event.target.value }))
+    const value = event.target.value
+    setForm((prev) => ({ ...prev, [field]: value }))
+
+    if (field === "personId" || field === "companyId") {
+      clearErrors("personId", "companyId")
+      return
+    }
+
+    if (field === "productId") {
+      clearErrors("productId", "descricaoProdutoManual", "custoBaseEstimado")
+      return
+    }
+
+    clearErrors(field)
+  }
+
+  const handleMoneyChange = (field) => (event) => {
+    setForm((prev) => ({ ...prev, [field]: formatCurrencyInput(event.target.value) }))
+    clearErrors(field)
+  }
+
+  const validateForm = () => {
+    const nextErrors = {}
+    const productDescription = (selectedProduct?.modelo || form.descricaoProdutoManual || "").trim()
+
+    if (!selectedPerson && !selectedCompany) {
+      nextErrors.personId = "Selecione uma pessoa ou empresa."
+      nextErrors.companyId = "Selecione uma pessoa ou empresa."
+    }
+
+    if (!form.dataNegocio) {
+      nextErrors.dataNegocio = "Informe a data do negocio."
+    }
+
+    if (form.prazoDias && (!/^\d+$/.test(form.prazoDias) || Number(form.prazoDias) < 0)) {
+      nextErrors.prazoDias = "Informe um prazo valido em dias."
+    }
+
+    if (!form.propostaCliente) {
+      nextErrors.propostaCliente = "Informe uma proposta valida."
+    }
+
+    if (form.tipoDemanda === "Compra") {
+      if (!selectedProduct && !productDescription) {
+        nextErrors.descricaoProdutoManual = "Selecione um produto do estoque ou descreva o caminhao."
+      }
+
+      if (!selectedProduct && !form.custoBaseEstimado) {
+        nextErrors.custoBaseEstimado = "Informe o custo base estimado."
+      }
+    }
+
+    if (form.tipoDemanda === "Venda") {
+      if (!productDescription) {
+        nextErrors.descricaoProdutoManual = "Descreva o caminhao que o cliente quer nos vender."
+      }
+
+      if (!form.valorReferenciaVenda) {
+        nextErrors.valorReferenciaVenda = "Informe o valor estimado de revenda."
+      }
+    }
+
+    return nextErrors
   }
 
   const handleSubmit = () => {
-    if (!form.tipoDemanda || !form.dataNegocio || !form.descricao || !form.propostaCliente) return
+    const validationErrors = validateForm()
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors)
+      return
+    }
 
     const productDescription = selectedProduct?.modelo || form.descricaoProdutoManual
-
-    if (!selectedPerson && !selectedCompany) return
-    if (form.tipoDemanda === "Compra" && !selectedProduct && !productDescription) return
-    if (form.tipoDemanda === "Venda" && !form.valorReferenciaVenda) return
-    if (form.tipoDemanda === "Compra" && !selectedProduct && !form.custoBaseEstimado) return
-
     const isoDate = new Date(`${form.dataNegocio}T12:00:00`).toISOString()
 
     onSave?.({
@@ -193,36 +271,36 @@ const DealDialog = ({
       <Dialog isOpen={isOpen} onClose={isSaving ? undefined : handleClose} title={title} subtitle={subtitle} footer={footer}>
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           <div>
-            <Select id="deal-person" label="Pessoa (opcional)" value={form.personId} onChange={handleChange("personId")} options={[{ label: "Selecione uma pessoa", value: "" }, ...people.map((person) => ({ label: person.nome, value: person.id }))]} />
+            <Select id="deal-person" label="Pessoa (opcional)" value={form.personId} onChange={handleChange("personId")} error={errors.personId} options={[{ label: "Selecione uma pessoa", value: "" }, ...people.map((person) => ({ label: person.nome, value: person.id }))]} />
             <button type="button" onClick={() => setPersonDialogOpen(true)} className="mt-2 text-sm font-medium text-amber-700 transition hover:text-amber-800">Pessoa nao encontrada? Cadastrar agora.</button>
           </div>
           <div>
-            <Select id="deal-company" label="Empresa (opcional)" value={form.companyId} onChange={handleChange("companyId")} options={[{ label: "Selecione uma empresa", value: "" }, ...companies.map((company) => ({ label: company.nome, value: company.id }))]} />
+            <Select id="deal-company" label="Empresa (opcional)" value={form.companyId} onChange={handleChange("companyId")} error={errors.companyId} options={[{ label: "Selecione uma empresa", value: "" }, ...companies.map((company) => ({ label: company.nome, value: company.id }))]} />
             <button type="button" onClick={() => setCompanyDialogOpen(true)} className="mt-2 text-sm font-medium text-amber-700 transition hover:text-amber-800">Empresa nao encontrada? Cadastrar agora.</button>
           </div>
           <Select id="deal-type" label="Tipo de demanda" value={form.tipoDemanda} onChange={handleChange("tipoDemanda")} options={demandOptions} />
-          <Input id="deal-date" label="Data do negocio" type="date" value={form.dataNegocio} onChange={handleChange("dataNegocio")} />
-          <Input id="deal-deadline" label="Prazo (dias)" type="number" value={form.prazoDias} onChange={handleChange("prazoDias")} placeholder="Ex.: 15" />
+          <Input id="deal-date" label="Data do negocio" type="date" value={form.dataNegocio} onChange={handleChange("dataNegocio")} error={errors.dataNegocio} />
+          <Input id="deal-deadline" label="Prazo (dias)" type="number" value={form.prazoDias} onChange={handleChange("prazoDias")} error={errors.prazoDias} placeholder="Ex.: 15" />
           <Select id="deal-priority" label="Prioridade" value={form.prioridade} onChange={handleChange("prioridade")} options={priorityOptions} />
-          <Input id="deal-description" label="Descricao da demanda" value={form.descricao} onChange={handleChange("descricao")} placeholder="O que o cliente quer comprar ou vender" />
+          <Input id="deal-description" label="Descricao da demanda" value={form.descricao} onChange={handleChange("descricao")} hint="Campo opcional para contextualizar a oportunidade." placeholder="O que o cliente quer comprar ou vender" />
           <Select id="deal-status" label="Status do funil" value={form.status} onChange={handleChange("status")} options={statusOptions} />
 
           {form.tipoDemanda === "Compra" ? (
             <>
               <Select id="deal-stock-product" label="Produto do estoque (opcional)" value={form.productId} onChange={handleChange("productId")} options={[{ label: "Digitar caminhao manualmente", value: "" }, ...availableProducts.map((product) => ({ label: `${product.modelo} - ${product.status}`, value: product.id }))]} />
-              <Input id="deal-manual-product" label="Descricao manual do caminhao" value={form.descricaoProdutoManual} onChange={handleChange("descricaoProdutoManual")} placeholder="Se o produto nao estiver no estoque, descreva aqui" disabled={Boolean(form.productId)} />
+              <Input id="deal-manual-product" label="Descricao manual do caminhao" value={form.descricaoProdutoManual} onChange={handleChange("descricaoProdutoManual")} error={errors.descricaoProdutoManual} placeholder="Se o produto nao estiver no estoque, descreva aqui" disabled={Boolean(form.productId)} />
             </>
           ) : (
             <>
-              <Input id="deal-manual-product-sale" label="Caminhao que o cliente quer nos vender" value={form.descricaoProdutoManual} onChange={handleChange("descricaoProdutoManual")} placeholder="Modelo, ano, configuracao e observacoes" />
-              <Input id="deal-reference-value" label="Valor estimado de revenda" value={form.valorReferenciaVenda} onChange={handleChange("valorReferenciaVenda")} placeholder="R$ 690 mil" />
+              <Input id="deal-manual-product-sale" label="Caminhao que o cliente quer nos vender" value={form.descricaoProdutoManual} onChange={handleChange("descricaoProdutoManual")} error={errors.descricaoProdutoManual} placeholder="Modelo, ano, configuracao e observacoes" />
+              <Input id="deal-reference-value" label="Valor estimado de revenda" value={form.valorReferenciaVenda} onChange={handleMoneyChange("valorReferenciaVenda")} error={errors.valorReferenciaVenda} placeholder="R$ 690 mil" />
             </>
           )}
 
-          <Input id="deal-proposal" label={form.tipoDemanda === "Compra" ? "Proposta do cliente para comprar" : "Proposta do cliente para nos vender"} value={form.propostaCliente} onChange={handleChange("propostaCliente")} placeholder="R$ 650 mil" />
+          <Input id="deal-proposal" label={form.tipoDemanda === "Compra" ? "Proposta do cliente para comprar" : "Proposta do cliente para nos vender"} value={form.propostaCliente} onChange={handleMoneyChange("propostaCliente")} error={errors.propostaCliente} placeholder="R$ 650 mil" />
 
           {form.tipoDemanda === "Compra" ? (
-            <Input id="deal-base-cost" label={selectedProduct ? "Custo base do produto (calculado)" : "Custo base estimado"} value={selectedProduct ? formatCurrency(baseCostFromStock) : form.custoBaseEstimado} onChange={handleChange("custoBaseEstimado")} placeholder="R$ 610 mil" disabled={Boolean(selectedProduct)} />
+            <Input id="deal-base-cost" label={selectedProduct ? "Valor do produto com margem (calculado)" : "Custo base estimado"} value={selectedProduct ? formatCurrency(saleValueFromStock) : form.custoBaseEstimado} onChange={handleMoneyChange("custoBaseEstimado")} error={errors.custoBaseEstimado} placeholder="R$ 610 mil" disabled={Boolean(selectedProduct)} />
           ) : (
             <Input id="deal-reference-helper" label="Lucro estimado na revenda" value={formatCurrency(metrics.lucroValor)} readOnly />
           )}
@@ -230,7 +308,7 @@ const DealDialog = ({
 
         <div className="mt-5 grid gap-3 md:grid-cols-4">
           <article className="rounded-2xl bg-slate-50 p-4"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Produto negociado</p><p className="mt-2 text-base font-semibold text-slate-900">{selectedProduct?.modelo || form.descricaoProdutoManual || "A definir"}</p></article>
-          <article className="rounded-2xl bg-slate-50 p-4"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Base do negocio</p><p className="mt-2 text-base font-semibold text-slate-900">{formatCurrency(metrics.custoBase)}</p></article>
+          <article className="rounded-2xl bg-slate-50 p-4"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{selectedProduct && form.tipoDemanda === "Compra" ? "Custo real do produto" : "Base do negocio"}</p><p className="mt-2 text-base font-semibold text-slate-900">{formatCurrency(metrics.custoBase)}</p></article>
           <article className="rounded-2xl bg-slate-50 p-4"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Lucro estimado</p><p className="mt-2 text-base font-semibold text-slate-900">{formatCurrency(metrics.lucroValor)}</p></article>
           <article className="rounded-2xl bg-slate-50 p-4"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Margem estimada</p><p className="mt-2 text-base font-semibold text-slate-900">{formatPercent(metrics.lucroPercentual)}</p></article>
         </div>
@@ -290,8 +368,8 @@ const Deals = () => {
             if (deal.productId) {
               const product = products.find((item) => item.id === deal.productId)
 
-              if (product && product.status === "Em negociacao") {
-                await updateProduct(product.id, { status: "Disponivel", currentDealId: null })
+              if (product && product.status === "Negociando") {
+                await updateProduct(product.id, { status: "Disponível", currentDealId: null })
               }
             }
 
@@ -309,11 +387,11 @@ const Deals = () => {
 
   const syncProductLink = async (dealId, newProductId, previousProductId = "") => {
     if (previousProductId && previousProductId !== newProductId) {
-      await updateProduct(previousProductId, { status: "Disponivel", currentDealId: null })
+      await updateProduct(previousProductId, { status: "Disponível", currentDealId: null })
     }
 
     if (newProductId) {
-      await updateProduct(newProductId, { status: "Em negociacao", currentDealId: dealId })
+      await updateProduct(newProductId, { status: "Negociando", currentDealId: dealId })
     }
   }
 

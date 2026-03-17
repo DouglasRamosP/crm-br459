@@ -51,15 +51,15 @@ export const funnelStages = [
   { label: "Interesse", count: 8, share: 100 },
   { label: "Busca no mercado", count: 6, share: 75 },
   { label: "Proposta", count: 5, share: 63 },
-  { label: "Negociacao", count: 3, share: 38 },
+  { label: "Negociação", count: 3, share: 38 },
   { label: "Ganhou", count: 2, share: 25 },
 ]
 
 export const stockStatus = [
-  { label: "Disponivel", count: 17, share: 52, tone: "amber" },
-  { label: "Em negociacao", count: 9, share: 28, tone: "sky" },
-  { label: "Reservado", count: 4, share: 12, tone: "emerald" },
-  { label: "Vendido", count: 3, share: 8, tone: "slate" },
+  { label: "Disponível", count: 17, share: 52, tone: "emerald" },
+  { label: "Negociando", count: 9, share: 28, tone: "amber" },
+  { label: "Reservado", count: 4, share: 12, tone: "sky" },
+  { label: "Vendido", count: 3, share: 8, tone: "rose" },
 ]
 
 export const strategicAlerts = [
@@ -119,7 +119,7 @@ export const activeDeals = [
     budget: "R$ 610 mil",
     daysOpen: 8,
     priority: "Alta",
-    status: "Negociacao",
+    status: "Negociação",
     productStatus: "Em avaliacao",
     nextStep: "Fechar proposta com fornecedor Z",
   },
@@ -235,7 +235,7 @@ export const servicesOverview = [
     provider: "Rota Express",
     cost: "R$ 3.900",
     impact: "Considerado no lucro real",
-    status: "Concluido",
+    status: "Concluído",
   },
 ]
 

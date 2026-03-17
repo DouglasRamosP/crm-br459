@@ -193,42 +193,36 @@ const ProductDialog = ({
               <p className="text-sm text-slate-500">Esses custos entram automaticamente no custo total do produto.</p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">{selectedServices.length} selecionados</span>
+              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">{selectedServices.length} atrelados</span>
               <Button text="Registrar servico" size="sm" className="bg-slate-900 text-white" onClick={() => setServiceDialogOpen(true)} />
             </div>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-3">
-            {services.length ? (
-              services.map((service) => {
-                const active = form.serviceIds.includes(service.id)
-
-                return (
-                  <button
-                    key={service.id}
-                    type="button"
-                    onClick={() => toggleService(service.id)}
-                    className={`rounded-2xl px-4 py-3 text-left text-sm transition ${active ? "bg-slate-900 text-white" : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100"}`}
-                  >
-                    <p className="font-semibold">{service.nome}</p>
-                    <p className="mt-1 text-xs opacity-80">{service.custo || formatCurrency(service.custoValor || 0)}</p>
-                  </button>
-                )
-              })
-            ) : (
-              <p className="text-sm text-slate-500">Nenhum servico cadastrado ainda. Use o botao acima para registrar o primeiro.</p>
-            )}
           </div>
           {selectedServices.length ? (
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               {selectedServices.map((service) => (
                 <div key={service.id} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
-                  <p className="font-semibold text-slate-900">{service.nome}</p>
-                  <p className="mt-1">{service.tipo || "Sem tipo"} | {service.status || "Sem status"}</p>
-                  <p className="mt-1 text-slate-500">{service.custo || formatCurrency(service.custoValor || 0)}</p>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-slate-900">{service.nome}</p>
+                      <p className="mt-1">{service.tipo || "Sem tipo"} | {service.status || "Sem status"}</p>
+                      <p className="mt-1 text-slate-500">{service.custo || formatCurrency(service.custoValor || 0)}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => toggleService(service.id)}
+                      className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-200"
+                    >
+                      Remover
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
-          ) : null}
+          ) : (
+            <div className="mt-4 rounded-2xl border border-dashed border-slate-300 bg-white/80 px-4 py-5 text-sm text-slate-500">
+              Nenhum servico atrelado a este produto ainda. Use "Registrar servico" para adicionar um novo servico e vinculá-lo automaticamente.
+            </div>
+          )}
         </div>
 
         <div className="mt-5 grid gap-3 md:grid-cols-4">

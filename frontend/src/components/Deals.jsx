@@ -20,6 +20,7 @@ import {
   formatPercent,
   getProductBaseCost,
   getProductEstimatedSale,
+  normalizeProductStatus,
   parseMoney,
   toCurrencyInputValue,
 } from "../utils/business"
@@ -287,7 +288,7 @@ const DealDialog = ({
 
           {form.tipoDemanda === "Compra" ? (
             <>
-              <Select id="deal-stock-product" label="Produto do estoque (opcional)" value={form.productId} onChange={handleChange("productId")} options={[{ label: "Digitar caminhao manualmente", value: "" }, ...availableProducts.map((product) => ({ label: `${product.modelo} - ${product.status}`, value: product.id }))]} />
+              <Select id="deal-stock-product" label="Produto do estoque (opcional)" value={form.productId} onChange={handleChange("productId")} options={[{ label: "Digitar caminhao manualmente", value: "" }, ...availableProducts.map((product) => ({ label: `${product.modelo} - ${normalizeProductStatus(product.status)}`, value: product.id }))]} />
               <Input id="deal-manual-product" label="Descricao manual do caminhao" value={form.descricaoProdutoManual} onChange={handleChange("descricaoProdutoManual")} error={errors.descricaoProdutoManual} placeholder="Se o produto nao estiver no estoque, descreva aqui" disabled={Boolean(form.productId)} />
             </>
           ) : (

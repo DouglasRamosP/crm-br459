@@ -23,6 +23,7 @@ import {
   getProductEstimatedSale,
   getProductLinkedServices,
   getProductStatusTone,
+  normalizeProductStatus,
   parsePercent,
   toCurrencyInputValue,
 } from "../utils/business"
@@ -413,9 +414,10 @@ const Products = () => {
   const averageMargin = products.length ? formatPercent(products.reduce((sum, product) => sum + parsePercent(product.margemEsperada || product.margem), 0) / products.length) : "0,0%"
 
   const summaryCards = [
-    { label: "Produtos em estoque", value: products.length, detail: "Ativos acompanhados com custo total e potencial de venda." },
-    { label: "Negociando", value: products.filter((product) => product.status === "Negociando").length, detail: "Itens ja puxados para algum negocio." },
-    { label: "Parados > 45 dias", value: products.filter((product) => getDaysInStock(product) > 45).length, detail: `Margem media esperada: ${averageMargin}` },
+    { label: "Disponível", value: products.filter((product) => normalizeProductStatus(product.status) === "Disponível").length, detail: "Produtos prontos para abordagem comercial.", tone: "emerald" },
+    { label: "Negociando", value: products.filter((product) => normalizeProductStatus(product.status) === "Negociando").length, detail: "Itens ja puxados para algum negocio.", tone: "amber" },
+    { label: "Reservado", value: products.filter((product) => normalizeProductStatus(product.status) === "Reservado").length, detail: "Produtos separados aguardando conclusao.", tone: "sky" },
+    { label: "Vendido", value: products.filter((product) => normalizeProductStatus(product.status) === "Vendido").length, detail: `Margem media esperada: ${averageMargin}`, tone: "rose" },
   ]
 
   return (
@@ -431,10 +433,10 @@ const Products = () => {
           <Button onClick={openCreate} text="Adicionar produto" icon={<PlusIcon className="h-4 w-4" />} />
         </div>
       </div>
-      <div className="mt-6 grid gap-3 md:grid-cols-3">
+      <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {summaryCards.map((card) => (
-          <article key={card.label} className="rounded-[24px] border border-slate-200 bg-slate-50/80 p-4">
-            <div className="flex items-center gap-3"><div className="rounded-2xl bg-white p-2 text-amber-600 shadow-sm"><TruckIcon className="h-5 w-5" /></div><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{card.label}</p><p className="mt-1 text-2xl font-semibold text-slate-900">{card.value}</p></div></div>
+          <article key={card.label} className={`rounded-[24px] border p-4 ${card.tone === "emerald" ? "border-emerald-200 bg-emerald-50/80" : card.tone === "amber" ? "border-amber-200 bg-amber-50/80" : card.tone === "sky" ? "border-sky-200 bg-sky-50/80" : "border-rose-200 bg-rose-50/80"}`}>
+            <div className="flex items-center gap-3"><div className={`rounded-2xl bg-white p-2 shadow-sm ${card.tone === "emerald" ? "text-emerald-600" : card.tone === "amber" ? "text-amber-600" : card.tone === "sky" ? "text-sky-600" : "text-rose-600"}`}><TruckIcon className="h-5 w-5" /></div><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{card.label}</p><p className="mt-1 text-2xl font-semibold text-slate-900">{card.value}</p></div></div>
             <p className="mt-3 text-sm leading-6 text-slate-600">{card.detail}</p>
           </article>
         ))}
@@ -450,12 +452,13 @@ const Products = () => {
                 const estimatedSale = getProductEstimatedSale(product, services)
                 const recommendation = product.recomendacao || buildProductRecommendation(product, services)
 
-                const statusTone = statusToneClasses[getProductStatusTone(product.status)] || statusToneClasses.slate
+                const normalizedStatus = normalizeProductStatus(product.status)
+                const statusTone = statusToneClasses[getProductStatusTone(normalizedStatus)] || statusToneClasses.slate
 
                 return (
                   <tr key={product.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
                     <td className="px-4 py-4"><p className="font-medium text-slate-800">{product.modelo}</p><p className="mt-1 text-slate-500">{recommendation}</p></td>
-                    <td className="px-4 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusTone}`}>{product.status}</span></td>
+                    <td className="px-4 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusTone}`}>{normalizedStatus}</span></td>
                     <td className="px-4 py-4 text-slate-700">{getDaysInStock(product)} dias</td>
                     <td className="px-4 py-4 text-slate-700">{formatCurrency(totalCost)} custo total | {formatCurrency(estimatedSale)} venda estimada | {linkedServices.length} servicos</td>
                     <td className="px-4 py-4"><div className="flex items-center gap-3"><button type="button" className="rounded-full p-2 text-amber-600 transition hover:bg-amber-50" onClick={() => handleView(product)}><ArrowTopRightOnSquareIcon className="h-4 w-4" /></button><button type="button" className="rounded-full p-2 text-rose-500 transition hover:bg-rose-50" onClick={() => handleDelete(product)}><TrashIcon className="h-4 w-4" /></button></div></td>

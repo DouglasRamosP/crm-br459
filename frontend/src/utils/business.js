@@ -98,8 +98,9 @@ export const getProductEstimatedSale = (product, services = []) => {
 export const buildProductRecommendation = (product, services = []) => {
   const days = getDaysInStock(product)
   const serviceCount = getProductLinkedServices(product, services).length
+  const productStatus = normalizeProductStatus(product?.status)
 
-  if (product?.status === "Negociando") {
+  if (productStatus === "Negociando") {
     return "Acompanhar proposta e reduzir atrito para fechamento."
   }
 
@@ -156,11 +157,19 @@ export const slugStatusTone = (status) => {
   return "slate"
 }
 
+export const normalizeProductStatus = (status) => {
+  if (status === "Em negociacao") return "Negociando"
+  if (status === "Disponivel") return "Disponível"
+  return status || ""
+}
+
 export const getProductStatusTone = (status) => {
-  if (status === "Negociando") return "amber"
-  if (status === "Disponível") return "emerald"
-  if (status === "Reservado") return "sky"
-  if (status === "Vendido") return "rose"
+  const normalizedStatus = normalizeProductStatus(status)
+
+  if (normalizedStatus === "Negociando") return "amber"
+  if (normalizedStatus === "Disponível") return "emerald"
+  if (normalizedStatus === "Reservado") return "sky"
+  if (normalizedStatus === "Vendido") return "rose"
   return "slate"
 }
 

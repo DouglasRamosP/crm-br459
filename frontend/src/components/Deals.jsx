@@ -42,7 +42,7 @@ const statusOptions = [
   "Interesse",
   "Busca no mercado",
   "Proposta",
-  "Negociação",
+  "Negociacao",
   "Ganhou",
   "Perdeu",
 ]
@@ -50,15 +50,16 @@ const activeProductDealStatuses = new Set([
   "Interesse",
   "Busca no mercado",
   "Proposta",
-  "Negociação",
+  "Negociacao",
 ])
+
 const dealStatusToneClasses = {
   Ganhou: "bg-emerald-100 text-emerald-700",
   "Busca no mercado": "bg-sky-100 text-sky-700",
-  Proposta: "bg-amber-100 text-amber-700",
+  Proposta: "bg-slate-100 text-slate-700",
+  Negociacao: "bg-amber-100 text-amber-700", 
+  Interesse: "bg-purple-100 text-purple-700",
   Perdeu: "bg-rose-100 text-rose-700",
-  Negociação: "bg-amber-100 text-amber-700",
-  Interesse: "bg-orange-100 text-orange-700",
   default: "bg-slate-100 text-slate-700",
 }
 
@@ -845,7 +846,12 @@ const Deals = () => {
     {
       key: "prazo",
       label: "Prazo curto",
-      value: deals.filter((deal) => deal.prazoDias < 2).length,
+      value: deals.filter((deal) => {
+        if (!shouldShowDealDeadline(deal.status)) return false
+
+        const remainingDays = getDealRemainingDays(deal)
+        return remainingDays !== null && remainingDays < 2
+      }).length,
       detail: "Negócios pendentes onde o prazo é inferior a 2 dias.",
     },
   ]
@@ -855,18 +861,79 @@ const Deals = () => {
       .map((deal) => deal.productId)
   )
 
+  const STATUS_PRIORITY = {
+    Negociacao: 1,
+    Proposta: 2,
+    "Busca no mercado": 3,
+    Interesse: 4,
+    Ganhou: 5,
+    Perdeu: 6,
+  }
+
   const filteredDeals =
     activeSummaryFilter === "compra"
       ? deals.filter((deal) => deal.tipoDemanda === "Compra")
-      : activeSummaryFilter == "venda"
+      : activeSummaryFilter === "venda"
         ? deals.filter((deal) => deal.tipoDemanda === "Venda")
         : activeSummaryFilter === "negociando"
           ? deals.filter((deal) =>
               ["Negociacao", "Proposta"].includes(deal.status)
             )
-          : activeSummaryFilter == "prazo"
-            ? deals.filter((deal) => deal.prazoDias < 2)
+          : activeSummaryFilter === "prazo"
+            ? deals.filter((deal) => {
+                if (!shouldShowDealDeadline(deal.status)) return false
+
+                const remainingDays = getDealRemainingDays(deal)
+                return remainingDays !== null && remainingDays < 2
+              })
             : deals
+
+  const sortedDeals = [...filteredDeals].sort((a, b) => {
+    const aRemaining = getDealRemainingDays(a)
+    const bRemaining = getDealRemainingDays(b)
+
+    const aHasDeadline = shouldShowDealDeadline(a.status) && aRemaining !== null
+    const bHasDeadline = shouldShowDealDeadline(b.status) && bRemaining !== null
+
+    // 1) prazo === 0 vem primeiro
+    if (
+      aHasDeadline &&
+      aRemaining === 0 &&
+      (!bHasDeadline || bRemaining !== 0)
+    ) {
+      return -1
+    }
+    if (
+      bHasDeadline &&
+      bRemaining === 0 &&
+      (!aHasDeadline || aRemaining !== 0)
+    ) {
+      return 1
+    }
+
+    // 2) prazo < 2 vem depois
+    const aShortDeadline = aHasDeadline && aRemaining < 2
+    const bShortDeadline = bHasDeadline && bRemaining < 2
+
+    if (aShortDeadline && !bShortDeadline) return -1
+    if (bShortDeadline && !aShortDeadline) return 1
+
+    // 3) ordenar por status
+    const aStatusPriority = STATUS_PRIORITY[a.status] ?? 999
+    const bStatusPriority = STATUS_PRIORITY[b.status] ?? 999
+
+    if (aStatusPriority !== bStatusPriority) {
+      return aStatusPriority - bStatusPriority
+    }
+
+    // 4) desempate por prazo menor
+    if (aHasDeadline && bHasDeadline && aRemaining !== bRemaining) {
+      return aRemaining - bRemaining
+    }
+
+    // 5) desempate por data mais recente
+    return new Date(b.dataNegocio).getTime() - new Date(a.dataNegocio).getTime()
+  })
 
   return (
     <section className="rounded-[28px] border border-white/70 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur">
@@ -907,7 +974,11 @@ const Deals = () => {
             <button
               key={card.label}
               type="button"
-              onClick={() => setActiveSummaryFilter(card.key)}
+              onClick={() =>
+                setActiveSummaryFilter((current) =>
+                  current === card.key ? "todos" : card.key
+                )
+              }
               className={`rounded-[24px] border p-4 text-left transition ${
                 isActive
                   ? "border-slate-900 bg-slate-900 text-white"
@@ -960,7 +1031,7 @@ const Deals = () => {
           <div className="px-6 py-12 text-center text-sm text-slate-500">
             Carregando negocios do json-server...
           </div>
-        ) : !filteredDeals.length ? (
+        ) : !sortedDeals.length ? (
           <div className="px-6 py-12 text-center text-sm text-slate-500">
             Nenhum negocio cadastrado ainda.
           </div>
@@ -977,7 +1048,7 @@ const Deals = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredDeals.map((deal) => {
+              {sortedDeals.map((deal) => {
                 const lostProductToWonDeal = Boolean(
                   deal.productId &&
                   deal.status !== "Ganhou" &&

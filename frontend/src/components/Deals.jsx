@@ -9,7 +9,12 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 import { createCompany, listCompanies } from "../services/companies"
-import { createDeal, listDeals, removeDeal, updateDeal } from "../services/deals"
+import {
+  createDeal,
+  listDeals,
+  removeDeal,
+  updateDeal,
+} from "../services/deals"
 import { createPerson, listPeople } from "../services/people"
 import { listProducts, updateProduct } from "../services/products"
 import { listServices } from "../services/serviceRecords"
@@ -33,14 +38,26 @@ import Select from "./Select"
 
 const demandOptions = ["Compra", "Venda"]
 const priorityOptions = ["Baixa", "Media", "Alta", "Critica"]
-const statusOptions = ["Interesse", "Busca no mercado", "Proposta", "Negociação", "Ganhou", "Perdeu"]
-const activeProductDealStatuses = new Set(["Interesse", "Busca no mercado", "Proposta", "Negociação"])
+const statusOptions = [
+  "Interesse",
+  "Busca no mercado",
+  "Proposta",
+  "Negociação",
+  "Ganhou",
+  "Perdeu",
+]
+const activeProductDealStatuses = new Set([
+  "Interesse",
+  "Busca no mercado",
+  "Proposta",
+  "Negociação",
+])
 const dealStatusToneClasses = {
   Ganhou: "bg-emerald-100 text-emerald-700",
   "Busca no mercado": "bg-sky-100 text-sky-700",
   Proposta: "bg-amber-100 text-amber-700",
   Perdeu: "bg-rose-100 text-rose-700",
-  "Negociação": "bg-amber-100 text-amber-700",
+  Negociação: "bg-amber-100 text-amber-700",
   Interesse: "bg-orange-100 text-orange-700",
   default: "bg-slate-100 text-slate-700",
 }
@@ -49,7 +66,8 @@ const getToday = () => new Date().toISOString().slice(0, 10)
 const dayInMs = 86400000
 
 const getDealRemainingDays = (deal) => {
-  if (!deal?.dataNegocio || deal?.prazoDias == null || deal.prazoDias === "") return null
+  if (!deal?.dataNegocio || deal?.prazoDias == null || deal.prazoDias === "")
+    return null
 
   const startDate = new Date(deal.dataNegocio)
   const today = new Date()
@@ -79,7 +97,8 @@ const getDealDeadlineLabel = (remainingDays) => {
   return `${remainingDays} dias restantes`
 }
 
-const shouldShowDealDeadline = (status) => !["Ganhou", "Perdeu"].includes(status)
+const shouldShowDealDeadline = (status) =>
+  !["Ganhou", "Perdeu"].includes(status)
 
 const baseForm = {
   personId: "",
@@ -100,11 +119,24 @@ const baseForm = {
 const createFormState = (initialValues = {}) => ({
   ...baseForm,
   ...initialValues,
-  dataNegocio: (initialValues.dataNegocio || initialValues.createdAt || getToday()).slice(0, 10),
-  prazoDias: initialValues.prazoDias != null ? String(initialValues.prazoDias) : "",
+  dataNegocio: (
+    initialValues.dataNegocio ||
+    initialValues.createdAt ||
+    getToday()
+  ).slice(0, 10),
+  prazoDias:
+    initialValues.prazoDias != null ? String(initialValues.prazoDias) : "",
   propostaCliente: toCurrencyInputValue(initialValues.propostaCliente),
-  custoBaseEstimado: initialValues.productId ? "" : toCurrencyInputValue(initialValues.custoBaseEstimado || initialValues.custoBase),
-  valorReferenciaVenda: toCurrencyInputValue(initialValues.valorReferenciaVenda || initialValues.valorReferencia || initialValues.valorVenda),
+  custoBaseEstimado: initialValues.productId
+    ? ""
+    : toCurrencyInputValue(
+        initialValues.custoBaseEstimado || initialValues.custoBase
+      ),
+  valorReferenciaVenda: toCurrencyInputValue(
+    initialValues.valorReferenciaVenda ||
+      initialValues.valorReferencia ||
+      initialValues.valorVenda
+  ),
 })
 
 const DealDialog = ({
@@ -139,21 +171,42 @@ const DealDialog = ({
   }
 
   const selectedPerson = people.find((person) => person.id === form.personId)
-  const selectedCompany = companies.find((company) => company.id === form.companyId)
-  const selectedProduct = products.find((product) => product.id === form.productId)
-  const availableProducts = products.filter((product) => product.status !== "Vendido" || product.id === form.productId)
-  const baseCostFromStock = selectedProduct ? getProductBaseCost(selectedProduct, services) : 0
-  const saleValueFromStock = selectedProduct ? getProductEstimatedSale(selectedProduct, services) : 0
+  const selectedCompany = companies.find(
+    (company) => company.id === form.companyId
+  )
+  const selectedProduct = products.find(
+    (product) => product.id === form.productId
+  )
+  const availableProducts = products.filter(
+    (product) => product.status !== "Vendido" || product.id === form.productId
+  )
+  const baseCostFromStock = selectedProduct
+    ? getProductBaseCost(selectedProduct, services)
+    : 0
+  const saleValueFromStock = selectedProduct
+    ? getProductEstimatedSale(selectedProduct, services)
+    : 0
   const metrics = computeDealMetrics({
     dealType: form.tipoDemanda,
     proposalValue: form.propostaCliente,
-    referenceValue: form.tipoDemanda === "Venda" ? form.valorReferenciaVenda : form.propostaCliente,
-    baseCost: form.tipoDemanda === "Compra" ? (selectedProduct ? baseCostFromStock : form.custoBaseEstimado) : form.propostaCliente,
+    referenceValue:
+      form.tipoDemanda === "Venda"
+        ? form.valorReferenciaVenda
+        : form.propostaCliente,
+    baseCost:
+      form.tipoDemanda === "Compra"
+        ? selectedProduct
+          ? baseCostFromStock
+          : form.custoBaseEstimado
+        : form.propostaCliente,
   })
 
   useEffect(() => {
     if (selectedPerson?.empresaId && !form.companyId) {
-      setForm((current) => ({ ...current, companyId: selectedPerson.empresaId }))
+      setForm((current) => ({
+        ...current,
+        companyId: selectedPerson.empresaId,
+      }))
     }
   }, [selectedPerson?.empresaId, form.companyId])
 
@@ -191,13 +244,20 @@ const DealDialog = ({
   }
 
   const handleMoneyChange = (field) => (event) => {
-    setForm((prev) => ({ ...prev, [field]: formatCurrencyInput(event.target.value) }))
+    setForm((prev) => ({
+      ...prev,
+      [field]: formatCurrencyInput(event.target.value),
+    }))
     clearErrors(field)
   }
 
   const validateForm = () => {
     const nextErrors = {}
-    const productDescription = (selectedProduct?.modelo || form.descricaoProdutoManual || "").trim()
+    const productDescription = (
+      selectedProduct?.modelo ||
+      form.descricaoProdutoManual ||
+      ""
+    ).trim()
 
     if (!selectedPerson && !selectedCompany) {
       nextErrors.personId = "Selecione uma pessoa ou empresa."
@@ -208,7 +268,10 @@ const DealDialog = ({
       nextErrors.dataNegocio = "Informe a data do negocio."
     }
 
-    if (form.prazoDias && (!/^\d+$/.test(form.prazoDias) || Number(form.prazoDias) < 0)) {
+    if (
+      form.prazoDias &&
+      (!/^\d+$/.test(form.prazoDias) || Number(form.prazoDias) < 0)
+    ) {
       nextErrors.prazoDias = "Informe um prazo valido em dias."
     }
 
@@ -218,7 +281,8 @@ const DealDialog = ({
 
     if (form.tipoDemanda === "Compra") {
       if (!selectedProduct && !productDescription) {
-        nextErrors.descricaoProdutoManual = "Selecione um produto do estoque ou descreva o caminhao."
+        nextErrors.descricaoProdutoManual =
+          "Selecione um produto do estoque ou descreva o caminhao."
       }
 
       if (!selectedProduct && !form.custoBaseEstimado) {
@@ -228,7 +292,8 @@ const DealDialog = ({
 
     if (form.tipoDemanda === "Venda") {
       if (!productDescription) {
-        nextErrors.descricaoProdutoManual = "Descreva o caminhao que o cliente quer nos vender."
+        nextErrors.descricaoProdutoManual =
+          "Descreva o caminhao que o cliente quer nos vender."
       }
 
       if (!form.valorReferenciaVenda) {
@@ -247,14 +312,23 @@ const DealDialog = ({
       return
     }
 
-    const productDescription = selectedProduct?.modelo || form.descricaoProdutoManual
+    const productDescription =
+      selectedProduct?.modelo || form.descricaoProdutoManual
     const isoDate = new Date(`${form.dataNegocio}T12:00:00`).toISOString()
 
     onSave?.({
       personId: selectedPerson?.id || form.personId || "",
       contato: selectedPerson?.nome || initialValues.contato || "",
-      companyId: selectedCompany?.id || selectedPerson?.empresaId || form.companyId || "",
-      empresa: selectedCompany?.nome || selectedPerson?.empresa || initialValues.empresa || "",
+      companyId:
+        selectedCompany?.id ||
+        selectedPerson?.empresaId ||
+        form.companyId ||
+        "",
+      empresa:
+        selectedCompany?.nome ||
+        selectedPerson?.empresa ||
+        initialValues.empresa ||
+        "",
       tipoDemanda: form.tipoDemanda,
       descricao: form.descricao,
       dataNegocio: isoDate,
@@ -266,7 +340,10 @@ const DealDialog = ({
       produtoOrigem: selectedProduct ? "Estoque" : "Manual",
       produtoStatus: selectedProduct ? "Associado" : "Sem produto",
       propostaCliente: form.propostaCliente,
-      valorVenda: form.tipoDemanda === "Compra" ? form.propostaCliente : form.valorReferenciaVenda,
+      valorVenda:
+        form.tipoDemanda === "Compra"
+          ? form.propostaCliente
+          : form.valorReferenciaVenda,
       custoBase: metrics.custoBase,
       custoBaseFormatado: formatCurrency(metrics.custoBase),
       valorReferencia: metrics.valorReferencia,
@@ -285,7 +362,11 @@ const DealDialog = ({
 
     try {
       const saved = await onQuickCreatePerson(payload)
-      setForm((current) => ({ ...current, personId: saved.id, companyId: current.companyId || saved.empresaId || "" }))
+      setForm((current) => ({
+        ...current,
+        personId: saved.id,
+        companyId: current.companyId || saved.empresaId || "",
+      }))
       setPersonDialogOpen(false)
     } finally {
       setQuickSavingPerson(false)
@@ -306,61 +387,266 @@ const DealDialog = ({
 
   const footer = (
     <div className="mt-8 flex gap-3">
-      <Button text="Cancelar" size="lg" onClick={handleClose} disabled={isSaving} />
-      <Button text={isSaving ? "Salvando..." : submitText} size="lg" onClick={handleSubmit} disabled={isSaving} />
+      <Button
+        text="Cancelar"
+        size="lg"
+        onClick={handleClose}
+        disabled={isSaving}
+      />
+      <Button
+        text={isSaving ? "Salvando..." : submitText}
+        size="lg"
+        onClick={handleSubmit}
+        disabled={isSaving}
+      />
     </div>
   )
 
   return (
     <>
-      <Dialog isOpen={isOpen} onClose={isSaving ? undefined : handleClose} title={title} subtitle={subtitle} footer={footer}>
+      <Dialog
+        isOpen={isOpen}
+        onClose={isSaving ? undefined : handleClose}
+        title={title}
+        subtitle={subtitle}
+        footer={footer}
+      >
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           <div>
-            <Select id="deal-person" label="Pessoa (opcional)" value={form.personId} onChange={handleChange("personId")} error={errors.personId} options={[{ label: "Selecione uma pessoa", value: "" }, ...people.map((person) => ({ label: person.nome, value: person.id }))]} />
-            <button type="button" onClick={() => setPersonDialogOpen(true)} className="mt-2 text-sm font-medium text-amber-700 transition hover:text-amber-800">Pessoa nao encontrada? Cadastrar agora.</button>
+            <Select
+              id="deal-person"
+              label="Pessoa (opcional)"
+              value={form.personId}
+              onChange={handleChange("personId")}
+              error={errors.personId}
+              options={[
+                { label: "Selecione uma pessoa", value: "" },
+                ...people.map((person) => ({
+                  label: person.nome,
+                  value: person.id,
+                })),
+              ]}
+            />
+            <button
+              type="button"
+              onClick={() => setPersonDialogOpen(true)}
+              className="mt-2 text-sm font-medium text-amber-700 transition hover:text-amber-800"
+            >
+              Pessoa nao encontrada? Cadastrar agora.
+            </button>
           </div>
           <div>
-            <Select id="deal-company" label="Empresa (opcional)" value={form.companyId} onChange={handleChange("companyId")} error={errors.companyId} options={[{ label: "Selecione uma empresa", value: "" }, ...companies.map((company) => ({ label: company.nome, value: company.id }))]} />
-            <button type="button" onClick={() => setCompanyDialogOpen(true)} className="mt-2 text-sm font-medium text-amber-700 transition hover:text-amber-800">Empresa nao encontrada? Cadastrar agora.</button>
+            <Select
+              id="deal-company"
+              label="Empresa (opcional)"
+              value={form.companyId}
+              onChange={handleChange("companyId")}
+              error={errors.companyId}
+              options={[
+                { label: "Selecione uma empresa", value: "" },
+                ...companies.map((company) => ({
+                  label: company.nome,
+                  value: company.id,
+                })),
+              ]}
+            />
+            <button
+              type="button"
+              onClick={() => setCompanyDialogOpen(true)}
+              className="mt-2 text-sm font-medium text-amber-700 transition hover:text-amber-800"
+            >
+              Empresa nao encontrada? Cadastrar agora.
+            </button>
           </div>
-          <Select id="deal-type" label="Tipo de demanda" value={form.tipoDemanda} onChange={handleChange("tipoDemanda")} options={demandOptions} />
-          <Input id="deal-date" label="Data do negocio" type="date" value={form.dataNegocio} onChange={handleChange("dataNegocio")} error={errors.dataNegocio} />
-          <Input id="deal-deadline" label="Prazo (dias)" type="number" value={form.prazoDias} onChange={handleChange("prazoDias")} error={errors.prazoDias} placeholder="Ex.: 15" />
-          <Select id="deal-priority" label="Prioridade" value={form.prioridade} onChange={handleChange("prioridade")} options={priorityOptions} />
-          <Input id="deal-description" label="Descricao da demanda" value={form.descricao} onChange={handleChange("descricao")} hint="Campo opcional para contextualizar a oportunidade." placeholder="O que o cliente quer comprar ou vender" />
-          <Select id="deal-status" label="Status do funil" value={form.status} onChange={handleChange("status")} options={statusOptions} />
+          <Select
+            id="deal-type"
+            label="Tipo de demanda"
+            value={form.tipoDemanda}
+            onChange={handleChange("tipoDemanda")}
+            options={demandOptions}
+          />
+          <Input
+            id="deal-date"
+            label="Data do negocio"
+            type="date"
+            value={form.dataNegocio}
+            onChange={handleChange("dataNegocio")}
+            error={errors.dataNegocio}
+          />
+          <Input
+            id="deal-deadline"
+            label="Prazo (dias)"
+            type="number"
+            value={form.prazoDias}
+            onChange={handleChange("prazoDias")}
+            error={errors.prazoDias}
+            placeholder="Ex.: 15"
+          />
+          <Select
+            id="deal-priority"
+            label="Prioridade"
+            value={form.prioridade}
+            onChange={handleChange("prioridade")}
+            options={priorityOptions}
+          />
+          <Input
+            id="deal-description"
+            label="Descricao da demanda"
+            value={form.descricao}
+            onChange={handleChange("descricao")}
+            hint="Campo opcional para contextualizar a oportunidade."
+            placeholder="O que o cliente quer comprar ou vender"
+          />
+          <Select
+            id="deal-status"
+            label="Status do funil"
+            value={form.status}
+            onChange={handleChange("status")}
+            options={statusOptions}
+          />
 
           {form.tipoDemanda === "Compra" ? (
             <>
-              <Select id="deal-stock-product" label="Produto do estoque (opcional)" value={form.productId} onChange={handleChange("productId")} options={[{ label: "Digitar caminhao manualmente", value: "" }, ...availableProducts.map((product) => ({ label: `${product.modelo} - ${normalizeProductStatus(product.status)}`, value: product.id }))]} />
-              <Input id="deal-manual-product" label="Descricao manual do caminhao" value={form.descricaoProdutoManual} onChange={handleChange("descricaoProdutoManual")} error={errors.descricaoProdutoManual} placeholder="Se o produto nao estiver no estoque, descreva aqui" disabled={Boolean(form.productId)} />
+              <Select
+                id="deal-stock-product"
+                label="Produto do estoque (opcional)"
+                value={form.productId}
+                onChange={handleChange("productId")}
+                options={[
+                  { label: "Digitar caminhao manualmente", value: "" },
+                  ...availableProducts.map((product) => ({
+                    label: `${product.modelo} - ${normalizeProductStatus(product.status)}`,
+                    value: product.id,
+                  })),
+                ]}
+              />
+              <Input
+                id="deal-manual-product"
+                label="Descricao manual do caminhao"
+                value={form.descricaoProdutoManual}
+                onChange={handleChange("descricaoProdutoManual")}
+                error={errors.descricaoProdutoManual}
+                placeholder="Se o produto nao estiver no estoque, descreva aqui"
+                disabled={Boolean(form.productId)}
+              />
             </>
           ) : (
             <>
-              <Input id="deal-manual-product-sale" label="Caminhao que o cliente quer nos vender" value={form.descricaoProdutoManual} onChange={handleChange("descricaoProdutoManual")} error={errors.descricaoProdutoManual} placeholder="Modelo, ano, configuracao e observacoes" />
-              <Input id="deal-reference-value" label="Valor estimado de revenda" value={form.valorReferenciaVenda} onChange={handleMoneyChange("valorReferenciaVenda")} error={errors.valorReferenciaVenda} placeholder="R$ 690 mil" />
+              <Input
+                id="deal-manual-product-sale"
+                label="Caminhao que o cliente quer nos vender"
+                value={form.descricaoProdutoManual}
+                onChange={handleChange("descricaoProdutoManual")}
+                error={errors.descricaoProdutoManual}
+                placeholder="Modelo, ano, configuracao e observacoes"
+              />
+              <Input
+                id="deal-reference-value"
+                label="Valor estimado de revenda"
+                value={form.valorReferenciaVenda}
+                onChange={handleMoneyChange("valorReferenciaVenda")}
+                error={errors.valorReferenciaVenda}
+                placeholder="R$ 690 mil"
+              />
             </>
           )}
 
-          <Input id="deal-proposal" label={form.tipoDemanda === "Compra" ? "Proposta do cliente para comprar" : "Proposta do cliente para nos vender"} value={form.propostaCliente} onChange={handleMoneyChange("propostaCliente")} error={errors.propostaCliente} placeholder="R$ 650 mil" />
+          <Input
+            id="deal-proposal"
+            label={
+              form.tipoDemanda === "Compra"
+                ? "Proposta do cliente para comprar"
+                : "Proposta do cliente para nos vender"
+            }
+            value={form.propostaCliente}
+            onChange={handleMoneyChange("propostaCliente")}
+            error={errors.propostaCliente}
+            placeholder="R$ 650 mil"
+          />
 
           {form.tipoDemanda === "Compra" ? (
-            <Input id="deal-base-cost" label={selectedProduct ? "Valor do produto com margem (calculado)" : "Custo base estimado"} value={selectedProduct ? formatCurrency(saleValueFromStock) : form.custoBaseEstimado} onChange={handleMoneyChange("custoBaseEstimado")} error={errors.custoBaseEstimado} placeholder="R$ 610 mil" disabled={Boolean(selectedProduct)} />
+            <Input
+              id="deal-base-cost"
+              label={
+                selectedProduct
+                  ? "Valor do produto com margem (calculado)"
+                  : "Custo base estimado"
+              }
+              value={
+                selectedProduct
+                  ? formatCurrency(saleValueFromStock)
+                  : form.custoBaseEstimado
+              }
+              onChange={handleMoneyChange("custoBaseEstimado")}
+              error={errors.custoBaseEstimado}
+              placeholder="R$ 610 mil"
+              disabled={Boolean(selectedProduct)}
+            />
           ) : (
-            <Input id="deal-reference-helper" label="Lucro estimado na revenda" value={formatCurrency(metrics.lucroValor)} readOnly />
+            <Input
+              id="deal-reference-helper"
+              label="Lucro estimado na revenda"
+              value={formatCurrency(metrics.lucroValor)}
+              readOnly
+            />
           )}
         </div>
 
         <div className="mt-5 grid gap-3 md:grid-cols-4">
-          <article className="rounded-2xl bg-slate-50 p-4"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Produto negociado</p><p className="mt-2 text-base font-semibold text-slate-900">{selectedProduct?.modelo || form.descricaoProdutoManual || "A definir"}</p></article>
-          <article className="rounded-2xl bg-slate-50 p-4"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{selectedProduct && form.tipoDemanda === "Compra" ? "Custo real do produto" : "Base do negocio"}</p><p className="mt-2 text-base font-semibold text-slate-900">{formatCurrency(metrics.custoBase)}</p></article>
-          <article className="rounded-2xl bg-slate-50 p-4"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Lucro estimado</p><p className="mt-2 text-base font-semibold text-slate-900">{formatCurrency(metrics.lucroValor)}</p></article>
-          <article className="rounded-2xl bg-slate-50 p-4"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Margem estimada</p><p className="mt-2 text-base font-semibold text-slate-900">{formatPercent(metrics.lucroPercentual)}</p></article>
+          <article className="rounded-2xl bg-slate-50 p-4">
+            <p className="text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
+              Produto negociado
+            </p>
+            <p className="mt-2 text-base font-semibold text-slate-900">
+              {selectedProduct?.modelo ||
+                form.descricaoProdutoManual ||
+                "A definir"}
+            </p>
+          </article>
+          <article className="rounded-2xl bg-slate-50 p-4">
+            <p className="text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
+              {selectedProduct && form.tipoDemanda === "Compra"
+                ? "Custo real do produto"
+                : "Base do negocio"}
+            </p>
+            <p className="mt-2 text-base font-semibold text-slate-900">
+              {formatCurrency(metrics.custoBase)}
+            </p>
+          </article>
+          <article className="rounded-2xl bg-slate-50 p-4">
+            <p className="text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
+              Lucro estimado
+            </p>
+            <p className="mt-2 text-base font-semibold text-slate-900">
+              {formatCurrency(metrics.lucroValor)}
+            </p>
+          </article>
+          <article className="rounded-2xl bg-slate-50 p-4">
+            <p className="text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
+              Margem estimada
+            </p>
+            <p className="mt-2 text-base font-semibold text-slate-900">
+              {formatPercent(metrics.lucroPercentual)}
+            </p>
+          </article>
         </div>
       </Dialog>
 
-      <PersonDialog isOpen={isPersonDialogOpen} isSaving={isQuickSavingPerson} onClose={() => setPersonDialogOpen(false)} onSave={handleQuickPersonSave} companies={companies} />
-      <CompanieDialog isOpen={isCompanyDialogOpen} isSaving={isQuickSavingCompany} onClose={() => setCompanyDialogOpen(false)} onSave={handleQuickCompanySave} people={people} onRequestNewPerson={() => setPersonDialogOpen(true)} />
+      <PersonDialog
+        isOpen={isPersonDialogOpen}
+        isSaving={isQuickSavingPerson}
+        onClose={() => setPersonDialogOpen(false)}
+        onSave={handleQuickPersonSave}
+        companies={companies}
+      />
+      <CompanieDialog
+        isOpen={isCompanyDialogOpen}
+        isSaving={isQuickSavingCompany}
+        onClose={() => setCompanyDialogOpen(false)}
+        onSave={handleQuickCompanySave}
+        people={people}
+        onRequestNewPerson={() => setPersonDialogOpen(true)}
+      />
     </>
   )
 }
@@ -375,18 +661,20 @@ const Deals = () => {
   const [isSaving, setIsSaving] = useState(false)
   const [isDialogOpen, setDialogOpen] = useState(false)
   const [selectedDeal, setSelectedDeal] = useState(null)
+  const [activeSummaryFilter, setActiveSummaryFilter] = useState("todos")
 
   const loadDeals = async () => {
     setIsLoading(true)
 
     try {
-      const [dealsData, peopleData, companiesData, productsData, servicesData] = await Promise.all([
-        listDeals(),
-        listPeople(),
-        listCompanies(),
-        listProducts(),
-        listServices(),
-      ])
+      const [dealsData, peopleData, companiesData, productsData, servicesData] =
+        await Promise.all([
+          listDeals(),
+          listPeople(),
+          listCompanies(),
+          listProducts(),
+          listServices(),
+        ])
 
       setDeals(dealsData)
       setPeople(peopleData)
@@ -405,7 +693,9 @@ const Deals = () => {
   }, [])
 
   const resolveProductStateFromDeals = (productId, projectedDeals) => {
-    const linkedDeals = projectedDeals.filter((deal) => deal.productId === productId)
+    const linkedDeals = projectedDeals.filter(
+      (deal) => deal.productId === productId
+    )
     const wonDeal = linkedDeals.find((deal) => deal.status === "Ganhou")
 
     if (wonDeal) {
@@ -415,7 +705,9 @@ const Deals = () => {
       }
     }
 
-    const activeDeal = linkedDeals.find((deal) => activeProductDealStatuses.has(deal.status))
+    const activeDeal = linkedDeals.find((deal) =>
+      activeProductDealStatuses.has(deal.status)
+    )
 
     if (activeDeal) {
       return {
@@ -435,7 +727,10 @@ const Deals = () => {
 
     await Promise.all(
       uniqueProductIds.map(async (productId) => {
-        const nextState = resolveProductStateFromDeals(productId, projectedDeals)
+        const nextState = resolveProductStateFromDeals(
+          productId,
+          projectedDeals
+        )
         await updateProduct(productId, nextState)
       })
     )
@@ -467,9 +762,16 @@ const Deals = () => {
     try {
       if (selectedDeal) {
         const saved = await updateDeal(selectedDeal.id, payload)
-        const projectedDeals = deals.map((item) => (item.id === selectedDeal.id ? saved : item))
-        await syncProductStatuses(projectedDeals, [selectedDeal.productId || "", payload.productId || ""])
-        setDeals((current) => current.map((item) => (item.id === selectedDeal.id ? saved : item)))
+        const projectedDeals = deals.map((item) =>
+          item.id === selectedDeal.id ? saved : item
+        )
+        await syncProductStatuses(projectedDeals, [
+          selectedDeal.productId || "",
+          payload.productId || "",
+        ])
+        setDeals((current) =>
+          current.map((item) => (item.id === selectedDeal.id ? saved : item))
+        )
         toast.success("Negocio atualizado com sucesso")
       } else {
         const saved = await createDeal(payload)
@@ -514,48 +816,183 @@ const Deals = () => {
   }
 
   const summaryCards = [
-    { label: "Negocios ativos", value: deals.length, detail: "Demandas abertas, em negociacao ou encerradas com historico." },
-    { label: "Compra", value: deals.filter((deal) => deal.tipoDemanda === "Compra").length, detail: "Clientes buscando caminhao ou oportunidade de venda." },
-    { label: "Venda", value: deals.filter((deal) => deal.tipoDemanda === "Venda").length, detail: "Leads oferecendo caminhao para compra da loja." },
+    {
+      key: "todos",
+      label: "Negocios ativos",
+      value: deals.length,
+      detail: "Demandas abertas, em negociacao ou encerradas com historico.",
+    },
+    {
+      key: "compra",
+      label: "Compra",
+      value: deals.filter((deal) => deal.tipoDemanda === "Compra").length,
+      detail: "Clientes buscando caminhao ou oportunidade de venda.",
+    },
+    {
+      key: "venda",
+      label: "Venda",
+      value: deals.filter((deal) => deal.tipoDemanda === "Venda").length,
+      detail: "Leads oferecendo caminhao para compra da loja.",
+    },
+    {
+      key: "negociando",
+      label: "Negociando",
+      value: deals.filter((deal) =>
+        ["Negociacao", "Proposta"].includes(deal.status)
+      ).length,
+      detail: "Negócios em aberto, ou em etapa de proposta.",
+    },
+    {
+      key: "prazo",
+      label: "Prazo curto",
+      value: deals.filter((deal) => deal.prazoDias < 2).length,
+      detail: "Negócios pendentes onde o prazo é inferior a 2 dias.",
+    },
   ]
   const soldProductIds = new Set(
-    deals.filter((deal) => deal.status === "Ganhou" && deal.productId).map((deal) => deal.productId)
+    deals
+      .filter((deal) => deal.status === "Ganhou" && deal.productId)
+      .map((deal) => deal.productId)
   )
+
+  const filteredDeals =
+    activeSummaryFilter === "compra"
+      ? deals.filter((deal) => deal.tipoDemanda === "Compra")
+      : activeSummaryFilter == "venda"
+        ? deals.filter((deal) => deal.tipoDemanda === "Venda")
+        : activeSummaryFilter === "negociando"
+          ? deals.filter((deal) =>
+              ["Negociacao", "Proposta"].includes(deal.status)
+            )
+          : activeSummaryFilter == "prazo"
+            ? deals.filter((deal) => deal.prazoDias < 2)
+            : deals
 
   return (
     <section className="rounded-[28px] border border-white/70 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-700">Negocios</p>
-          <h3 className="mt-2 text-xl font-semibold text-slate-900">Demandas ligadas a pessoas, empresas, estoque e margem</h3>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Agora o negocio conecta quem demandou, prazo, proposta, produto em estoque ou descricao manual e lucro estimado antes do fechamento.</p>
+          <p className="text-xs font-semibold tracking-[0.24em] text-amber-700 uppercase">
+            Negocios
+          </p>
+          <h3 className="mt-2 text-xl font-semibold text-slate-900">
+            Demandas ligadas a pessoas, empresas, estoque e margem
+          </h3>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+            Agora o negocio conecta quem demandou, prazo, proposta, produto em
+            estoque ou descricao manual e lucro estimado antes do fechamento.
+          </p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={loadDeals} text="Atualizar" size="md" className="bg-white text-slate-700 ring-1 ring-slate-200" icon={<ArrowPathIcon className="h-4 w-4" />} disabled={isLoading} />
-          <Button onClick={openCreate} text="Adicionar negocio" icon={<PlusIcon className="h-4 w-4" />} />
+          <Button
+            onClick={loadDeals}
+            text="Atualizar"
+            size="md"
+            className="bg-white text-slate-700 ring-1 ring-slate-200"
+            icon={<ArrowPathIcon className="h-4 w-4" />}
+            disabled={isLoading}
+          />
+          <Button
+            onClick={openCreate}
+            text="Adicionar negocio"
+            icon={<PlusIcon className="h-4 w-4" />}
+          />
         </div>
       </div>
-      <div className="mt-6 grid gap-3 md:grid-cols-3">
-        {summaryCards.map((card) => (
-          <article key={card.label} className="rounded-[24px] border border-slate-200 bg-slate-50/80 p-4">
-            <div className="flex items-center gap-3"><div className="rounded-2xl bg-white p-2 text-amber-600 shadow-sm"><BriefcaseIcon className="h-5 w-5" /></div><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{card.label}</p><p className="mt-1 text-2xl font-semibold text-slate-900">{card.value}</p></div></div>
-            <p className="mt-3 text-sm leading-6 text-slate-600">{card.detail}</p>
-          </article>
-        ))}
+      <div className="mt-6 grid gap-3 md:grid-cols-5">
+        {summaryCards.map((card) => {
+          const isActive = activeSummaryFilter === card.key
+
+          return (
+            <button
+              key={card.label}
+              type="button"
+              onClick={() => setActiveSummaryFilter(card.key)}
+              className={`rounded-[24px] border p-4 text-left transition ${
+                isActive
+                  ? "border-slate-900 bg-slate-900 text-white"
+                  : "border-slate-200 bg-slate-50/80 hover:bg-slate-100"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className={`rounded-2xl p-2 shadow-sm ${
+                    isActive
+                      ? "bg-white/10 text-amber-300"
+                      : "bg-white text-amber-600"
+                  }`}
+                >
+                  <BriefcaseIcon className="h-5 w-5" />
+                </div>
+
+                <div>
+                  <p
+                    className={`text-xs font-semibold tracking-[0.18em] uppercase ${
+                      isActive ? "text-slate-200" : "text-slate-500"
+                    }`}
+                  >
+                    {card.label}
+                  </p>
+
+                  <p
+                    className={`mt-1 text-2xl font-semibold ${
+                      isActive ? "text-white" : "text-slate-900"
+                    }`}
+                  >
+                    {card.value}
+                  </p>
+                </div>
+              </div>
+
+              <p
+                className={`mt-3 text-sm leading-6 ${
+                  isActive ? "text-slate-200" : "text-slate-600"
+                }`}
+              >
+                {card.detail}
+              </p>
+            </button>
+          )
+        })}
       </div>
       <div className="mt-6 overflow-x-auto rounded-[24px] border border-slate-200 bg-white">
-        {isLoading ? <div className="px-6 py-12 text-center text-sm text-slate-500">Carregando negocios do json-server...</div> : !deals.length ? <div className="px-6 py-12 text-center text-sm text-slate-500">Nenhum negocio cadastrado ainda.</div> : (
+        {isLoading ? (
+          <div className="px-6 py-12 text-center text-sm text-slate-500">
+            Carregando negocios do json-server...
+          </div>
+        ) : !filteredDeals.length ? (
+          <div className="px-6 py-12 text-center text-sm text-slate-500">
+            Nenhum negocio cadastrado ainda.
+          </div>
+        ) : (
           <table className="w-full border-collapse text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-left text-slate-500"><tr><th className="px-4 py-3 font-medium">Origem</th><th className="px-4 py-3 font-medium">Tipo e prazo</th><th className="px-4 py-3 font-medium">Status</th><th className="px-4 py-3 font-medium">Produto</th><th className="px-4 py-3 font-medium">Proposta e lucro</th><th className="px-4 py-3 font-medium">Acoes</th></tr></thead>
+            <thead className="border-b border-slate-200 bg-slate-50 text-left text-slate-500">
+              <tr>
+                <th className="px-4 py-3 font-medium">Origem</th>
+                <th className="px-4 py-3 font-medium">Tipo e prazo</th>
+                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium">Produto</th>
+                <th className="px-4 py-3 font-medium">Proposta e lucro</th>
+                <th className="px-4 py-3 font-medium">Acoes</th>
+              </tr>
+            </thead>
             <tbody>
-              {deals.map((deal) => {
+              {filteredDeals.map((deal) => {
                 const lostProductToWonDeal = Boolean(
-                  deal.productId && deal.status !== "Ganhou" && soldProductIds.has(deal.productId)
+                  deal.productId &&
+                  deal.status !== "Ganhou" &&
+                  soldProductIds.has(deal.productId)
                 )
                 const shouldShowDeadline = shouldShowDealDeadline(deal.status)
-                const remainingDays = shouldShowDeadline ? getDealRemainingDays(deal) : null
-                const deadlineVisualState = shouldShowDeadline ? getDealDeadlineVisualState(remainingDays) : "default"
-                const statusTone = dealStatusToneClasses[deal.status] || dealStatusToneClasses.default
+                const remainingDays = shouldShowDeadline
+                  ? getDealRemainingDays(deal)
+                  : null
+                const deadlineVisualState = shouldShowDeadline
+                  ? getDealDeadlineVisualState(remainingDays)
+                  : "default"
+                const statusTone =
+                  dealStatusToneClasses[deal.status] ||
+                  dealStatusToneClasses.default
                 const rowClass =
                   deadlineVisualState === "critical"
                     ? "bg-rose-50/80 hover:bg-rose-100/70"
@@ -570,34 +1007,81 @@ const Deals = () => {
                       : "text-slate-500"
 
                 return (
-                  <tr key={deal.id} className={`border-b border-slate-100 last:border-0 ${rowClass}`}>
+                  <tr
+                    key={deal.id}
+                    className={`border-b border-slate-100 last:border-0 ${rowClass}`}
+                  >
                     <td className="px-4 py-4">
                       <div>
-                        <p className="font-medium text-slate-800">{deal.empresa || deal.contato || "Sem identificacao"}</p>
-                        <p className="mt-1 text-slate-500">{deal.contato || "Sem pessoa vinculada"}</p>
+                        <p className="font-medium text-slate-800">
+                          {deal.empresa || deal.contato || "Sem identificacao"}
+                        </p>
+                        <p className="mt-1 text-slate-500">
+                          {deal.contato || "Sem pessoa vinculada"}
+                        </p>
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      <p className="font-medium text-slate-800">{deal.tipoDemanda}</p>
-                      {shouldShowDeadline ? <p className={`mt-1 ${prazoClass}`}>{getDealDeadlineLabel(remainingDays)}</p> : null}
+                      <p className="font-medium text-slate-800">
+                        {deal.tipoDemanda}
+                      </p>
+                      {shouldShowDeadline ? (
+                        <p className={`mt-1 ${prazoClass}`}>
+                          {getDealDeadlineLabel(remainingDays)}
+                        </p>
+                      ) : null}
                     </td>
                     <td className="px-4 py-4">
-                      <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusTone}`}>
+                      <span
+                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusTone}`}
+                      >
                         {deal.status}
                       </span>
                     </td>
                     <td className="px-4 py-4">
-                      <p className={`font-medium ${lostProductToWonDeal ? "text-rose-600" : "text-slate-800"}`}>{deal.produtoNegociado || "A definir"}</p>
-                      <p className={`mt-1 ${lostProductToWonDeal ? "text-rose-500" : "text-slate-500"}`}>{lostProductToWonDeal ? "Produto vendido em outro negocio" : deal.produtoOrigem === "Estoque" ? "Vindo do estoque" : "Descricao manual"}</p>
+                      <p
+                        className={`font-medium ${lostProductToWonDeal ? "text-rose-600" : "text-slate-800"}`}
+                      >
+                        {deal.produtoNegociado || "A definir"}
+                      </p>
+                      <p
+                        className={`mt-1 ${lostProductToWonDeal ? "text-rose-500" : "text-slate-500"}`}
+                      >
+                        {lostProductToWonDeal
+                          ? "Produto vendido em outro negocio"
+                          : deal.produtoOrigem === "Estoque"
+                            ? "Vindo do estoque"
+                            : "Descricao manual"}
+                      </p>
                     </td>
                     <td className="px-4 py-4">
-                      <p className="font-medium text-slate-800">Proposta: {deal.propostaCliente}</p>
-                      <p className="mt-1 text-slate-500">Lucro: {deal.lucroReal || formatCurrency(parseMoney(deal.lucroValor))} - {deal.margemReal || formatPercent(deal.lucroPercentual)}</p>
+                      <p className="font-medium text-slate-800">
+                        Proposta: {deal.propostaCliente}
+                      </p>
+                      <p className="mt-1 text-slate-500">
+                        Lucro:{" "}
+                        {deal.lucroReal ||
+                          formatCurrency(parseMoney(deal.lucroValor))}{" "}
+                        -{" "}
+                        {deal.margemReal || formatPercent(deal.lucroPercentual)}
+                      </p>
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
-                        <button type="button" className="rounded-full p-2 text-amber-600 transition hover:bg-amber-50" onClick={() => handleView(deal)}><ArrowTopRightOnSquareIcon className="h-4 w-4" /></button>
-                        <button type="button" className="rounded-full p-2 text-rose-500 transition hover:bg-rose-50" onClick={() => handleDelete(deal)}><TrashIcon className="h-4 w-4" /></button>
+                        <button
+                          type="button"
+                          className="rounded-full p-2 text-amber-600 transition hover:bg-amber-50"
+                          onClick={() => handleView(deal)}
+                        >
+                          <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded-full p-2 text-rose-500 transition hover:bg-rose-50"
+                          onClick={() => handleDelete(deal)}
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -623,8 +1107,16 @@ const Deals = () => {
         onQuickCreatePerson={handleQuickCreatePerson}
         onQuickCreateCompany={handleQuickCreateCompany}
         initialValues={selectedDeal || undefined}
-        title={selectedDeal ? `Detalhes de ${selectedDeal.empresa || selectedDeal.contato || "negocio"}` : "Cadastrar negocio"}
-        subtitle={selectedDeal ? "Revise origem, produto, prazo, proposta e margem deste negocio." : "Selecione quem originou a demanda, defina o produto e veja o lucro estimado antes de salvar."}
+        title={
+          selectedDeal
+            ? `Detalhes de ${selectedDeal.empresa || selectedDeal.contato || "negocio"}`
+            : "Cadastrar negocio"
+        }
+        subtitle={
+          selectedDeal
+            ? "Revise origem, produto, prazo, proposta e margem deste negocio."
+            : "Selecione quem originou a demanda, defina o produto e veja o lucro estimado antes de salvar."
+        }
         submitText={selectedDeal ? "Salvar alteracoes" : "Salvar negocio"}
       />
     </section>
